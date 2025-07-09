@@ -1,47 +1,11 @@
 import React, { useEffect, useState, useMemo } from "react";
-import {
-    Box,
-    Table,
-    TableBody,
-    TableCell,
-    TableContainer,
-    TableHead,
-    TableRow,
-    Paper,
-    TextField,
-    Typography,
-    Avatar,
-    IconButton,
-    Checkbox,
-    MenuItem,
-    Select,
-    FormControl,
-    Button,
-    ToggleButton,
-    ToggleButtonGroup,
-    Pagination,
-} from "@mui/material";
-import {
-    Search as SearchIcon,
-    FilterList as FilterListIcon,
-    Visibility as VisibilityIcon,
-    Edit as EditIcon,
-    Delete as DeleteIcon,
-    Sort as SortIcon,
-    ViewList as ViewListIcon,
-    ViewModule as ViewModuleIcon,
-    ArrowDownward as ArrowDownwardIcon,
-    ArrowUpward as ArrowUpwardIcon,
-    LastPage as LastPageIcon,
-    FirstPage as FirstPageIcon,
-    KeyboardArrowRight as KeyboardArrowRightIcon,
-    KeyboardArrowLeft as KeyboardArrowLeftIcon
-} from "@mui/icons-material";
+import {Box,Table,TableBody,TableCell,TableContainer,TableHead,TableRow,Paper,TextField,Typography,Avatar,IconButton,Checkbox,MenuItem,Select, FormControl,Button,ToggleButton,ToggleButtonGroup,Pagination,} from "@mui/material";
+import {Search as SearchIcon,FilterList as FilterListIcon,Visibility as VisibilityIcon,Edit as EditIcon,Delete as DeleteIcon,Sort as SortIcon, ViewList as ViewListIcon, ViewModule as ViewModuleIcon, ArrowDownward as ArrowDownwardIcon, ArrowUpward as ArrowUpwardIcon, LastPage as LastPageIcon, FirstPage as FirstPageIcon, KeyboardArrowRight as KeyboardArrowRightIcon, KeyboardArrowLeft as KeyboardArrowLeftIcon} from "@mui/icons-material";
 import { GridMaster } from "./models/gridMaster";
 import { GridColumns } from "./models/gridColums";
 
 interface DataTableProps {
-    data: any[]; // Data should have a unique 'id' field
+    data: any[]; 
     gridMaster: GridMaster;
 }
 
@@ -98,7 +62,7 @@ const DataTable: React.FC<DataTableProps> = ({ data, gridMaster }) => {
     useEffect(() => {
         setPage(1);
         setSelectedRows([]);
-    }, [searchText, sortConfig, rowsPerPage]); // Add rowsPerPage to dependency array
+    }, [searchText, sortConfig, rowsPerPage]); 
 
     const handleChangePage = (event: React.ChangeEvent<unknown> | null, newPage: number) => {
         setPage(newPage);
@@ -107,7 +71,6 @@ const DataTable: React.FC<DataTableProps> = ({ data, gridMaster }) => {
 
     const handleChangeRowsPerPage = (event: React.ChangeEvent<HTMLInputElement> | React.ChangeEvent<{ value: unknown }> | any) => {
         setRowsPerPage(parseInt(event.target.value as string, 10));
-        // setPage(1); // Removed as it's handled by the useEffect above
         setSelectedRows([]);
     };
 
@@ -386,7 +349,7 @@ const DataTable: React.FC<DataTableProps> = ({ data, gridMaster }) => {
                                         {gridMaster.indexReqd && (
                                             <TableCell>
                                                 <Typography variant="body2" color="text.secondary">
-                                                    {actualIndex + 1} {/* Changed: Removed padStart */}
+                                                    {actualIndex + 1} 
                                                 </Typography>
                                             </TableCell>
                                         )}
@@ -442,7 +405,7 @@ const DataTable: React.FC<DataTableProps> = ({ data, gridMaster }) => {
                                             (gridMaster.indexReqd ? 1 : 0) +
                                             gridMaster.gridColumns.filter(col => col.displayable && col.code !== "id").length +
                                             (gridMaster.actionReqd ? 1 : 0) +
-                                            1 // for the checkbox column
+                                            1 
                                         }
                                         align="center"
                                     >
