@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from "react";
+
+import React, { useEffect, useState, useMemo } from "react";
 import {
   Box,
   Table,
@@ -16,12 +17,10 @@ import {
   MenuItem,
   Select,
   FormControl,
-  InputLabel,
+  Button,
   ToggleButton,
   ToggleButtonGroup,
-  Pagination,
-  Chip,
-  Button,
+  Pagination, // Make sure Pagination is imported
 } from "@mui/material";
 import {
   Search as SearchIcon,
@@ -29,19 +28,21 @@ import {
   Visibility as VisibilityIcon,
   Edit as EditIcon,
   Delete as DeleteIcon,
-  Download as DownloadIcon,
   Sort as SortIcon,
   ViewList as ViewListIcon,
   ViewModule as ViewModuleIcon,
-  MoreVert as MoreVertIcon,
   ArrowDownward as ArrowDownwardIcon,
   ArrowUpward as ArrowUpwardIcon,
+  LastPage as LastPageIcon,
+  FirstPage as FirstPageIcon,
+  KeyboardArrowRight as KeyboardArrowRightIcon,
+  KeyboardArrowLeft as KeyboardArrowLeftIcon
 } from "@mui/icons-material";
-import { GridMaster } from "./models/gridMaster";
-import { GridColumns } from "./models/gridColums";
+import { GridMaster } from "./models/gridMaster"; // Corrected import path
+import { GridColumns } from "./models/gridColums"; // Corrected import path
 
 interface DataTableProps {
-  data: any[];
+  data: any[]; // Data should have a unique 'id' field
   gridMaster: GridMaster;
 }
 
@@ -50,62 +51,91 @@ const getSearchableFields = (cols: GridColumns[]): string[] => {
 };
 
 const DataTable: React.FC<DataTableProps> = ({ data, gridMaster }) => {
-  const searchableFields = getSearchableFields(gridMaster.gridColumns);
+  const searchableFields = useMemo(() => getSearchableFields(gridMaster.gridColumns), [gridMaster.gridColumns]);
 
   const [searchText, setSearchText] = useState("");
-  const [filteredData, setFilteredData] = useState(data);
+  // State for sorting configuration
+  const [sortConfig, setSortConfig] = useState<{ key: string | null; direction: 'asc' | 'desc' | null }>({ key: null, direction: null });
   const [page, setPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(
-    gridMaster.gridPagination?.recordPerPage?.[0] || 100
+    gridMaster.gridPagination?.recordPerPage?.[0] || gridMaster.recordsPerPage || 10
   );
+  // Store IDs (numbers) of selected rows, not array indices
   const [selectedRows, setSelectedRows] = useState<number[]>([]);
-  const [view, setView] = useState("list");
+  const [view, setView] = useState("list"); // 'list' for table, 'grid' for card view
 
-  useEffect(() => {
-    const lowerText = searchText.toLowerCase();
-    const filtered = data.filter((row) =>
+  // Memoize filtered and sorted data to avoid re-calculations on every render
+  const processedData = useMemo(() => {
+    let currentFilteredData = data.filter((row) =>
       searchableFields.some((field) =>
-        String(row[field] ?? "")
-          .toLowerCase()
-          .includes(lowerText)
+        String(row[field] ?? "").toLowerCase().includes(searchText.toLowerCase())
       )
     );
-    setFilteredData(filtered);
-    setPage(1);
-  }, [searchText, data, searchableFields]);
 
-  const handleChangePage = (
-    event: React.ChangeEvent<unknown>,
-    newPage: number
-  ) => {
+    if (sortConfig.key) {
+      currentFilteredData.sort((a, b) => {
+        const aValue = a[sortConfig.key!];
+        const bValue = b[sortConfig.key!];
+
+        if (aValue === undefined || aValue === null) return sortConfig.direction === 'asc' ? 1 : -1;
+        if (bValue === undefined || bValue === null) return sortConfig.direction === 'asc' ? -1 : 1;
+
+        if (typeof aValue === 'string' && typeof bValue === 'string') {
+          return sortConfig.direction === 'asc'
+            ? aValue.localeCompare(bValue)
+            : bValue.localeCompare(aValue);
+        }
+        // Fallback for non-string types (numbers, dates, etc.)
+        if (aValue < bValue) return sortConfig.direction === 'asc' ? -1 : 1;
+        if (aValue > bValue) return sortConfig.direction === 'asc' ? 1 : -1;
+        return 0;
+      });
+    }
+    return currentFilteredData;
+  }, [data, searchText, searchableFields, sortConfig]);
+
+  const totalPages = Math.ceil(processedData.length / rowsPerPage);
+  const paginatedData = processedData.slice(
+    (page - 1) * rowsPerPage,
+    page * rowsPerPage
+  );
+
+  // Reset page to 1 and clear selections whenever search text or sorting configuration changes
+  useEffect(() => {
+    setPage(1);
+    setSelectedRows([]); // Clear selections on data change (search/sort)
+  }, [searchText, sortConfig]);
+
+
+  const handleChangePage = (event: React.ChangeEvent<unknown> | null, newPage: number) => {
     setPage(newPage);
+    setSelectedRows([]); // Clear selections on page change
   };
 
-  const handleChangeRowsPerPage = (
-    event:
-      | React.ChangeEvent<HTMLInputElement>
-      | React.ChangeEvent<{ value: unknown }>
-      | any
-  ) => {
+  const handleChangeRowsPerPage = (event: React.ChangeEvent<HTMLInputElement> | React.ChangeEvent<{ value: unknown }> | any) => {
     setRowsPerPage(parseInt(event.target.value as string, 10));
-    setPage(1);
+    setPage(1); // Reset to first page when rows per page changes
+    setSelectedRows([]); // Clear selections on rowsPerPage change
   };
 
   const handleSelectAll = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.checked) {
-      const newSelected = filteredData.map((row, index) => index);
-      setSelectedRows(newSelected);
+      // Select all currently paginated data IDs
+      const newSelectedIds = paginatedData.map((row) => row.id); // Use row.id
+      setSelectedRows((prevSelected) => Array.from(new Set([...prevSelected, ...newSelectedIds])));
     } else {
-      setSelectedRows([]);
+      // Deselect all currently paginated data IDs from the global selectedRows
+      const currentPageIds = new Set(paginatedData.map((row) => row.id));
+      setSelectedRows((prevSelected) => prevSelected.filter(id => !currentPageIds.has(id)));
     }
   };
 
-  const handleSelectRow = (index: number) => {
-    const selectedIndex = selectedRows.indexOf(index);
+  const handleSelectRow = (id: number) => { // Expecting ID (number) now
+    const selectedIndex = selectedRows.indexOf(id);
     let newSelected: number[] = [];
 
     if (selectedIndex === -1) {
-      newSelected = newSelected.concat(selectedRows, index);
+      newSelected = newSelected.concat(selectedRows, id);
     } else if (selectedIndex === 0) {
       newSelected = newSelected.concat(selectedRows.slice(1));
     } else if (selectedIndex === selectedRows.length - 1) {
@@ -116,7 +146,6 @@ const DataTable: React.FC<DataTableProps> = ({ data, gridMaster }) => {
         selectedRows.slice(selectedIndex + 1)
       );
     }
-
     setSelectedRows(newSelected);
   };
 
@@ -129,35 +158,41 @@ const DataTable: React.FC<DataTableProps> = ({ data, gridMaster }) => {
     }
   };
 
-  const totalPages = Math.ceil(filteredData.length / rowsPerPage);
-  const paginatedData = filteredData.slice(
-    (page - 1) * rowsPerPage,
-    page * rowsPerPage
-  );
+  const handleSort = (columnCode: string) => {
+    let direction: 'asc' | 'desc' = 'asc';
+    if (sortConfig.key === columnCode && sortConfig.direction === 'asc') {
+      direction = 'desc';
+    } else if (sortConfig.key === columnCode && sortConfig.direction === 'desc') {
+      // If already descending, clicking again removes sort
+      setSortConfig({ key: null, direction: null });
+      return;
+    }
+    setSortConfig({ key: columnCode, direction });
+  };
 
-  const generateInitials = (name: string) => {
-    return name
-      .split(" ")
-      .map((word) => word.charAt(0))
-      .join("")
-      .toUpperCase();
+  const generateInitials = (firstName: string, lastName: string, middleName?: string) => {
+    let initials = '';
+    if (firstName) initials += firstName.charAt(0);
+    if (middleName) initials += middleName.charAt(0);
+    if (lastName) initials += lastName.charAt(0);
+    return initials.toUpperCase();
   };
 
   const getRandomColor = () => {
-    const colors = [
-      "#FF6B6B",
-      "#4ECDC4",
-      "#45B7D1",
-      "#96CEB4",
-      "#FFEAA7",
-      "#DDA0DD",
-      "#98D8C8",
-    ];
+    const colors = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7', '#DDA0DD', '#98D8C8'];
     return colors[Math.floor(Math.random() * colors.length)];
   };
 
+  // Determine if all rows on the current page are selected
+  const isAllCurrentPageSelected = paginatedData.length > 0 &&
+    paginatedData.every(row => selectedRows.includes(row.id));
+
+  // Determine if some rows on the current page are selected (for indeterminate state)
+  const isCurrentPageIndeterminate = paginatedData.some(row => selectedRows.includes(row.id)) &&
+    !isAllCurrentPageSelected;
+
   return (
-    <Box sx={{ p: 3 }}>
+<Box sx={{ p: 3 }}>
       {/* Header (commented out as per original) */}
       <Box
         sx={{
@@ -264,58 +299,63 @@ const DataTable: React.FC<DataTableProps> = ({ data, gridMaster }) => {
           </ToggleButtonGroup>
         </Box>
       </Box>
-
       {/* Table */}
-      <Paper sx={{ width: "100%", mb: 3, borderRadius: 2, overflow: "hidden" }}>
+      <Paper sx={{ width: '100%', mb: 3, borderRadius: 2, overflow: 'hidden' }}>
         <TableContainer>
           <Table>
             <TableHead>
-              <TableRow sx={{ bgcolor: "#f8f9fa" }}>
+              <TableRow sx={{ bgcolor: '#f8f9fa' }}>
                 <TableCell padding="checkbox">
                   <Checkbox
                     color="primary"
-                    indeterminate={
-                      selectedRows.length > 0 &&
-                      selectedRows.length < filteredData.length
-                    }
-                    checked={
-                      filteredData.length > 0 &&
-                      selectedRows.length === filteredData.length
-                    }
+                    indeterminate={isCurrentPageIndeterminate}
+                    checked={isAllCurrentPageSelected}
                     onChange={handleSelectAll}
                   />
                 </TableCell>
                 {gridMaster.indexReqd && (
                   <TableCell>
-                    <Typography
-                      variant="body2"
-                      fontWeight="600"
-                      color="text.primary"
-                    >
+                    <Typography variant="body2" fontWeight="600" color="text.primary">
                       S.No
                     </Typography>
                   </TableCell>
                 )}
                 {gridMaster.gridColumns
-                  .filter((col) => col.displayable && col.code !== "ID") // Filter out the ID column
+                  .filter((col) => col.displayable && col.code !== "id")
                   .map((col) => (
-                    <TableCell key={col.code}>
-                      <Typography
-                        variant="body2"
-                        fontWeight="600"
-                        color="text.primary"
-                      >
-                        {col.title}
-                      </Typography>
+                    <TableCell
+                      key={col.code}
+                      onClick={() => col.sortable && handleSort(col.code)}
+                      sx={{ cursor: col.sortable ? 'pointer' : 'default' }}
+                    >
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                        <Typography variant="body2" fontWeight="600" color="text.primary">
+                          {col.title}
+                        </Typography>
+                        {col.sortable && (
+                           <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+                             <ArrowUpwardIcon
+                               sx={{
+                                 fontSize: '12px',
+                                 color: sortConfig.key === col.code && sortConfig.direction === 'asc' ? 'primary.main' : '#ccc',
+                                 marginBottom: '-4px'
+                               }}
+                             />
+                             <ArrowDownwardIcon
+                               sx={{
+                                 fontSize: '12px',
+                                 color: sortConfig.key === col.code && sortConfig.direction === 'desc' ? 'primary.main' : '#ccc',
+                                 marginTop: '-4px'
+                               }}
+                             />
+                           </Box>
+                         )}
+                      </Box>
                     </TableCell>
                   ))}
                 {gridMaster.actionReqd && (
                   <TableCell align="center">
-                    <Typography
-                      variant="body2"
-                      fontWeight="600"
-                      color="text.primary"
-                    >
+                    <Typography variant="body2" fontWeight="600" color="text.primary">
                       Actions
                     </Typography>
                   </TableCell>
@@ -324,57 +364,52 @@ const DataTable: React.FC<DataTableProps> = ({ data, gridMaster }) => {
             </TableHead>
             <TableBody>
               {paginatedData.map((row, index) => {
-                const isSelected = selectedRows.includes(index);
+                const isSelected = selectedRows.includes(row.id);
+                // The crucial line for correct S.No:
                 const actualIndex = (page - 1) * rowsPerPage + index;
 
                 return (
                   <TableRow
-                    key={index}
+                    key={row.id}
                     hover
                     selected={isSelected}
                     sx={{
-                      cursor: "pointer",
-                      "&:hover": { bgcolor: "#f5f5f5" },
+                      cursor: 'pointer',
+                      '&:hover': { bgcolor: '#f5f5f5' }
                     }}
                   >
                     <TableCell padding="checkbox">
                       <Checkbox
                         color="primary"
                         checked={isSelected}
-                        onChange={() => handleSelectRow(index)}
+                        onChange={() => handleSelectRow(row.id)}
                       />
                     </TableCell>
                     {gridMaster.indexReqd && (
                       <TableCell>
                         <Typography variant="body2" color="text.secondary">
-                          {String(actualIndex + 1).padStart(2, "0")}
+                          {String(actualIndex + 1).padStart(2, '0')}
                         </Typography>
                       </TableCell>
                     )}
                     {gridMaster.gridColumns
-                      .filter((col) => col.displayable && col.code !== "ID") // Filter out the ID column
+                      .filter((col) => col.displayable && col.code !== "id")
                       .map((col) => (
                         <TableCell key={col.code}>
-                          {col.code === "name" || col.code === "fullName" ? (
-                            <Box
-                              sx={{
-                                display: "flex",
-                                alignItems: "center",
-                                gap: 1,
-                              }}
-                            >
+                          {(col.code === "firstName" || col.code === "fullName") ? (
+                            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                               <Avatar
                                 sx={{
                                   width: 32,
                                   height: 32,
                                   bgcolor: getRandomColor(),
-                                  fontSize: "14px",
+                                  fontSize: '14px'
                                 }}
                               >
-                                {generateInitials(row[col.code] || "N/A")}
+                                {generateInitials(row.firstName, row.lastName, row.middleName)}
                               </Avatar>
                               <Typography variant="body2" color="text.primary">
-                                {row[col.code]}
+                                {`${row.firstName || ''} ${row.middleName ? row.middleName + ' ' : ''}${row.lastName || ''}`}
                               </Typography>
                             </Box>
                           ) : (
@@ -386,13 +421,7 @@ const DataTable: React.FC<DataTableProps> = ({ data, gridMaster }) => {
                       ))}
                     {gridMaster.actionReqd && (
                       <TableCell align="center">
-                        <Box
-                          sx={{
-                            display: "flex",
-                            gap: 1,
-                            justifyContent: "center",
-                          }}
-                        >
+                        <Box sx={{ display: 'flex', gap: 1, justifyContent: 'center' }}>
                           <IconButton size="small" color="primary">
                             <VisibilityIcon fontSize="small" />
                           </IconButton>
@@ -413,19 +442,13 @@ const DataTable: React.FC<DataTableProps> = ({ data, gridMaster }) => {
                   <TableCell
                     colSpan={
                       (gridMaster.indexReqd ? 1 : 0) +
-                      gridMaster.gridColumns.filter(
-                        (col) => col.displayable && col.code !== "ID"
-                      ).length + // Adjust colSpan for removed ID
+                      gridMaster.gridColumns.filter(col => col.displayable && col.code !== "id").length +
                       (gridMaster.actionReqd ? 1 : 0) +
-                      1
+                      1 // for the checkbox column
                     }
                     align="center"
                   >
-                    <Typography
-                      variant="body2"
-                      color="text.secondary"
-                      sx={{ py: 3 }}
-                    >
+                    <Typography variant="body2" color="text.secondary" sx={{ py: 3 }}>
                       No records found
                     </Typography>
                   </TableCell>
@@ -437,24 +460,26 @@ const DataTable: React.FC<DataTableProps> = ({ data, gridMaster }) => {
       </Paper>
 
       {/* Footer with pagination and controls */}
-      <Box
-        sx={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          p: 2,
-          bgcolor: "background.paper",
-          borderRadius: 2,
-          border: "1px solid",
-          borderColor: "divider",
-        }}
-      >
-        <Box sx={{ display: "flex", gap: 2, alignItems: "center" }}>
+      <Box sx={{
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        p: 2,
+        bgcolor: 'background.paper',
+        borderRadius: 2,
+        border: '1px solid',
+        borderColor: 'divider'
+      }}>
+        <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
           <Typography variant="body2" color="text.secondary">
             Download by
           </Typography>
           <FormControl size="small" sx={{ minWidth: 150 }}>
-            <Select displayEmpty defaultValue="" sx={{ fontSize: "14px" }}>
+            <Select
+              displayEmpty
+              defaultValue=""
+              sx={{ fontSize: '14px' }}
+            >
               <MenuItem value="" disabled>
                 <Typography variant="body2" color="text.secondary">
                   Select File Format
@@ -467,21 +492,25 @@ const DataTable: React.FC<DataTableProps> = ({ data, gridMaster }) => {
           </FormControl>
         </Box>
 
-        <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
             <Button
               variant="text"
               size="small"
-              startIcon={<ArrowDownwardIcon />}
-              sx={{ textTransform: "none", color: "text.secondary" }}
+              startIcon={<FirstPageIcon />}
+              sx={{ textTransform: 'none', color: 'text.secondary', minWidth: 'unset', px: 1 }}
+              onClick={() => handleChangePage(null, 1)}
+              disabled={page === 1}
             >
               First
             </Button>
             <Button
               variant="text"
               size="small"
-              startIcon={<ArrowDownwardIcon />}
-              sx={{ textTransform: "none", color: "text.secondary" }}
+              startIcon={<KeyboardArrowLeftIcon />}
+              sx={{ textTransform: 'none', color: 'text.secondary', minWidth: 'unset', px: 1 }}
+              onClick={() => handleChangePage(null, page - 1)}
+              disabled={page === 1}
             >
               Back
             </Button>
@@ -495,32 +524,36 @@ const DataTable: React.FC<DataTableProps> = ({ data, gridMaster }) => {
             color="primary"
             size="small"
             sx={{
-              "& .MuiPaginationItem-root": {
-                fontSize: "14px",
-                minWidth: "32px",
-                height: "32px",
-              },
+              '& .MuiPaginationItem-root': {
+                fontSize: '14px',
+                minWidth: '32px',
+                height: '32px'
+              }
             }}
           />
-          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
             <Button
               variant="text"
               size="small"
-              endIcon={<ArrowUpwardIcon />}
-              sx={{ textTransform: "none", color: "text.secondary" }}
+              endIcon={<KeyboardArrowRightIcon />}
+              sx={{ textTransform: 'none', color: 'text.secondary', minWidth: 'unset', px: 1 }}
+              onClick={() => handleChangePage(null, page + 1)}
+              disabled={page === totalPages}
             >
               Next
             </Button>
             <Button
               variant="text"
               size="small"
-              endIcon={<ArrowUpwardIcon />}
-              sx={{ textTransform: "none", color: "text.secondary" }}
+              endIcon={<LastPageIcon />}
+              sx={{ textTransform: 'none', color: 'text.secondary', minWidth: 'unset', px: 1 }}
+              onClick={() => handleChangePage(null, totalPages)}
+              disabled={page === totalPages}
             >
               Last
             </Button>
           </Box>
-          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
             <Typography variant="body2" color="text.secondary">
               Reload Pages
             </Typography>
@@ -528,16 +561,10 @@ const DataTable: React.FC<DataTableProps> = ({ data, gridMaster }) => {
               <Select
                 value={rowsPerPage}
                 onChange={handleChangeRowsPerPage}
-                sx={{ fontSize: "14px" }}
+                sx={{ fontSize: '14px' }}
               >
-                {(
-                  gridMaster.gridPagination?.recordPerPage || [
-                    5, 10, 25, 50, 100,
-                  ]
-                ).map((size) => (
-                  <MenuItem key={size} value={size}>
-                    {size}
-                  </MenuItem>
+                {(gridMaster.gridPagination?.recordPerPage || [5, 10, 25, 50, 100]).map(size => (
+                  <MenuItem key={size} value={size}>{size}</MenuItem>
                 ))}
               </Select>
             </FormControl>
