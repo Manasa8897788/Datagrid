@@ -1,0 +1,7 @@
+export enum EpType {
+  EP_DATA = "EP_DATA",
+  EP_UPDATE = "EP_UPDATE",
+  EP_DELETE = "EP_DELETE",
+  EP_TOGGLE = "EP_TOGGLE",
+  EP_PATCH = "EP_PATCH"
+}
