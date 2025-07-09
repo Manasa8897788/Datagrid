@@ -1,5 +1,4 @@
 import { GridColumns } from "./gridColums";
-import { GridEndpoints } from "./gridEndPoints";
 import { GridPagination } from "./gridPagination";
 
 export interface GridMaster {
@@ -15,7 +14,12 @@ export interface GridMaster {
   indexReqd: boolean;
   dynamicLoad: boolean;
   recordsPerPage: number;
-  gridPagination: GridPagination[];
+  gridPagination: GridPagination;
   gridColumns: GridColumns[];
-  gridActions: GridEndpoints[];
+  gridActions: Record<string, EndPoint>;
+}
+
+interface EndPoint {
+  uri: string;
+  method: string;
 }
