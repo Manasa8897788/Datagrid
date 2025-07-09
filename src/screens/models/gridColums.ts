@@ -1,4 +1,5 @@
 export interface GridColumns {
+  
   id: number;
   gridId: number;
   code: string;

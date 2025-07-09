@@ -1,148 +1,487 @@
-import * as React from "react";
-import { useState } from "react";
-import { DataGrid, GridColDef } from "@mui/x-data-grid";
-import Paper from "@mui/material/Paper";
-import { Box, TextField, Typography } from "@mui/material";
+import React, { useEffect, useState } from "react";
+import {
+  Box,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper,
+  TextField,
+  Typography,
+  Avatar,
+  IconButton,
+  Checkbox,
+  MenuItem,
+  Select,
+  FormControl,
+  InputLabel,
+  ToggleButton,
+  ToggleButtonGroup,
+  Pagination,
+  Chip,
+  Button,
+} from "@mui/material";
+import {
+  Search as SearchIcon,
+  FilterList as FilterListIcon,
+  Visibility as VisibilityIcon,
+  Edit as EditIcon,
+  Delete as DeleteIcon,
+  Download as DownloadIcon,
+  Sort as SortIcon,
+  ViewList as ViewListIcon,
+  ViewModule as ViewModuleIcon,
+  MoreVert as MoreVertIcon,
+  ArrowDownward as ArrowDownwardIcon,
+  ArrowUpward as ArrowUpwardIcon
+} from "@mui/icons-material";
 import { GridMaster } from "./models/gridMaster";
 import { GridColumns } from "./models/gridColums";
-import ViewListIcon from "@mui/icons-material/ViewList";
-import ViewModuleIcon from "@mui/icons-material/ViewModule";
-import ViewQuiltIcon from "@mui/icons-material/ViewQuilt";
-import ToggleButton from "@mui/material/ToggleButton";
-import ToggleButtonGroup from "@mui/material/ToggleButtonGroup";
 
 interface DataTableProps {
   data: any[];
   gridMaster: GridMaster;
 }
 
-const generateColumns = (cols: GridColumns[]): GridColDef[] => {
-  return cols
-    .filter((col) => col.displayable)
-    .map((col) => ({
-      field: col.code, // data field name (e.g., 'firstName')
-      headerName: col.title, // column header label
-      sortable: col.sortable, // enable/disable sorting
-      //   flex: 1, // responsive width
-      filterable: col.filterable, // MUI will allow column filter
-    }));
-};
-
-export interface GridPagination {
-  reqd: boolean;
-  pageCount: number;
-  recordPerPage: number[];
-  dynamicLoad: boolean;
-}
-
 const getSearchableFields = (cols: GridColumns[]): string[] => {
-  return cols.filter((col) => col.searchReqd).map((col) => col.code); // return list like ['firstName', 'lastName']
+  return cols.filter((col) => col.searchReqd).map((col) => col.code);
 };
 
 const DataTable: React.FC<DataTableProps> = ({ data, gridMaster }) => {
-  const columns: GridColDef[] = generateColumns(gridMaster.gridColumns);
   const searchableFields = getSearchableFields(gridMaster.gridColumns);
-  const pageSize = gridMaster.gridPagination.pageCount;
 
   const [searchText, setSearchText] = useState("");
-  const [filteredRows, setFilteredRows] = useState(data);
-  const [view, setView] = React.useState("list");
+  const [filteredData, setFilteredData] = useState(data);
+  const [page, setPage] = useState(1);
+  const [rowsPerPage, setRowsPerPage] = useState(
+    gridMaster.gridPagination?.recordPerPage?.[0] || 100
+  );
+  const [selectedRows, setSelectedRows] = useState<number[]>([]);
+  const [view, setView] = useState("list");
 
-  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    setSearchText(value.toLowerCase());
-
+  useEffect(() => {
+    const lowerText = searchText.toLowerCase();
     const filtered = data.filter((row) =>
-      searchableFields.some((field) => {
-        const cellValue = row[field];
-        return String(cellValue ?? "")
-          .toLowerCase()
-          .includes(value.toLowerCase());
-      })
+      searchableFields.some((field) =>
+        String(row[field] ?? "").toLowerCase().includes(lowerText)
+      )
     );
+    setFilteredData(filtered);
+    setPage(1);
+  }, [searchText, data, searchableFields]);
 
-    setFilteredRows(filtered);
+  const handleChangePage = (event: React.ChangeEvent<unknown>, newPage: number) => {
+    setPage(newPage);
+  };
+
+  const handleChangeRowsPerPage = (event: React.ChangeEvent<HTMLInputElement> | React.ChangeEvent<{ value: unknown }> | any) => {
+    setRowsPerPage(parseInt(event.target.value as string, 10));
+    setPage(1);
+  };
+
+  const handleSelectAll = (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (event.target.checked) {
+      const newSelected = filteredData.map((row, index) => index);
+      setSelectedRows(newSelected);
+    } else {
+      setSelectedRows([]);
+    }
+  };
+
+  const handleSelectRow = (index: number) => {
+    const selectedIndex = selectedRows.indexOf(index);
+    let newSelected: number[] = [];
+
+    if (selectedIndex === -1) {
+      newSelected = newSelected.concat(selectedRows, index);
+    } else if (selectedIndex === 0) {
+      newSelected = newSelected.concat(selectedRows.slice(1));
+    } else if (selectedIndex === selectedRows.length - 1) {
+      newSelected = newSelected.concat(selectedRows.slice(0, -1));
+    } else if (selectedIndex > 0) {
+      newSelected = newSelected.concat(
+        selectedRows.slice(0, selectedIndex),
+        selectedRows.slice(selectedIndex + 1)
+      );
+    }
+
+    setSelectedRows(newSelected);
   };
 
   const handleChangeView = (
     event: React.MouseEvent<HTMLElement>,
     nextView: string
   ) => {
-    setView(nextView);
+    if (nextView !== null) {
+      setView(nextView);
+    }
   };
 
-  console.log("hihi", gridMaster.gridPagination.recordPerPage);
+  const totalPages = Math.ceil(filteredData.length / rowsPerPage);
+  const paginatedData = filteredData.slice(
+    (page - 1) * rowsPerPage,
+    page * rowsPerPage
+  );
+
+  const generateInitials = (name: string) => {
+    return name.split(' ').map(word => word.charAt(0)).join('').toUpperCase();
+  };
+
+  const getRandomColor = () => {
+    const colors = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7', '#DDA0DD', '#98D8C8'];
+    return colors[Math.floor(Math.random() * colors.length)];
+  };
 
   return (
-    <Box sx={{ width: "100%", maxWidth: "100vw" }}>
-      {gridMaster.title && (
-        <Typography variant="h5" component="h2" gutterBottom>
-          {gridMaster.title}
-        </Typography>
-      )}
+      <Box sx={{ p: 3 }}>
+        {/* Header (commented out as per original) */}
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+          {/* {gridMaster.title && (
+            <Typography variant="h4" fontWeight="bold" color="text.primary">
+              {gridMaster.title}
+            </Typography>
+          )} */}
+        </Box>
 
-      <Box
-        sx={{
-          display: "flex",
-          flexDirection: "row",
-          justifyContent: "space-between",
-          alignItems: "center",
-        }}
-      >
-        <Box>
+        {/* Search and Filter Bar */}
+        <Box
+          sx={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            mb: 3,
+            p: 2,
+            bgcolor: 'background.paper',
+            borderRadius: 2,
+            border: '1px solid',
+            borderColor: 'divider',
+          }}
+        >
+          {/* Left: Search Input */}
           {gridMaster.searchReqd && (
             <TextField
-              label="Search"
-              variant="outlined"
+              placeholder="Search"
+              variant="standard"
               value={searchText}
-              onChange={handleSearch}
-              sx={{ mb: 2, width: 300 }}
+              onChange={(e) => setSearchText(e.target.value)}
+              sx={{
+                flexGrow: 1, // Allows TextField to take remaining space
+                '& .MuiInputBase-root': {
+                  borderRadius: '4px',
+                  padding: '0 8px',
+                  height: '40px', // Set a fixed height for the input field
+                  backgroundColor: 'white',
+                },
+                '& .MuiInputBase-input': {
+                  padding: '0 !important', // Remove default input padding
+                  fontSize: '14px',
+                },
+                '& .MuiInput-underline:before': {
+                  borderBottom: 'none', // Remove underline
+                },
+                '& .MuiInput-underline:after': {
+                  borderBottom: 'none', // Remove underline on focus
+                },
+                '& .MuiInput-underline:hover:not(.Mui-disabled):before': {
+                  borderBottom: 'none', // Remove underline on hover
+                },
+              }}
+              InputProps={{
+                startAdornment: (
+                  <SearchIcon color="action" sx={{ mr: 1, color: '#666' }} />
+                ), // Place icon inside
+              }}
             />
           )}
+
+          {/* Right: Sort, Filter, View Toggle */}
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 2, // Spacing between Sort, Filter, and View Toggle
+              pl: 2, // Padding on the left to separate from search
+              borderLeft: '1px solid #e0e0e0', // Separator line
+              height: '40px', // Take full height of parent, matching TextField height
+              ml: gridMaster.searchReqd ? 2 : 0 // Add margin left if search is present
+            }}
+          >
+            {/* Sort */}
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, cursor: 'pointer' }}>
+              <SortIcon sx={{ fontSize: '20px', color: '#666' }} /> {/* Adjust icon size/color */}
+              <Typography variant="body2" color="text.secondary" sx={{ whiteSpace: 'nowrap' }}>
+                Sort By
+              </Typography>
+            </Box>
+
+            {/* Filter */}
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, cursor: 'pointer' }}>
+              <FilterListIcon sx={{ fontSize: '20px', color: '#666' }} /> {/* Adjust icon size/color */}
+              <Typography variant="body2" color="text.secondary" sx={{ whiteSpace: 'nowrap' }}>
+                Filters
+              </Typography>
+            </Box>
+
+            {/* View Toggle - using the styled component */}
+            <ToggleButtonGroup
+              value={view}
+              exclusive
+              onChange={handleChangeView}
+              size="small"
+            >
+              <ToggleButton value="list">
+                <ViewListIcon />
+              </ToggleButton>
+              <ToggleButton value="grid">
+                <ViewModuleIcon />
+              </ToggleButton>
+            </ToggleButtonGroup>
+          </Box>
         </Box>
 
-        <Box>
-          <ToggleButtonGroup value={view} exclusive onChange={handleChangeView}>
-            <ToggleButton value="list" aria-label="list">
-              <ViewListIcon />
-            </ToggleButton>
-            <ToggleButton value="module" aria-label="module">
-              <ViewModuleIcon />
-            </ToggleButton>
-          </ToggleButtonGroup>
+
+        {/* Table */}
+        <Paper sx={{ width: '100%', mb: 3, borderRadius: 2, overflow: 'hidden' }}>
+          <TableContainer>
+            <Table>
+              <TableHead>
+                <TableRow sx={{ bgcolor: '#f8f9fa' }}>
+                  <TableCell padding="checkbox">
+                    <Checkbox
+                      color="primary"
+                      indeterminate={selectedRows.length > 0 && selectedRows.length < filteredData.length}
+                      checked={filteredData.length > 0 && selectedRows.length === filteredData.length}
+                      onChange={handleSelectAll}
+                    />
+                  </TableCell>
+                  {gridMaster.indexReqd && (
+                    <TableCell>
+                      <Typography variant="body2" fontWeight="600" color="text.primary">
+                        S.No
+                      </Typography>
+                    </TableCell>
+                  )}
+                  {gridMaster.gridColumns
+                    .filter((col) => col.displayable && col.code !== "ID") // Filter out the ID column
+                    .map((col) => (
+                      <TableCell key={col.code}>
+                        <Typography variant="body2" fontWeight="600" color="text.primary">
+                          {col.title}
+                        </Typography>
+                      </TableCell>
+                    ))}
+                  {gridMaster.actionReqd && (
+                    <TableCell align="center">
+                      <Typography variant="body2" fontWeight="600" color="text.primary">
+                        Actions
+                      </Typography>
+                    </TableCell>
+                  )}
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {paginatedData.map((row, index) => {
+                  const isSelected = selectedRows.includes(index);
+                  const actualIndex = (page - 1) * rowsPerPage + index;
+
+                  return (
+                    <TableRow
+                      key={index}
+                      hover
+                      selected={isSelected}
+                      sx={{
+                        cursor: 'pointer',
+                        '&:hover': { bgcolor: '#f5f5f5' }
+                      }}
+                    >
+                      <TableCell padding="checkbox">
+                        <Checkbox
+                          color="primary"
+                          checked={isSelected}
+                          onChange={() => handleSelectRow(index)}
+                        />
+                      </TableCell>
+                      {gridMaster.indexReqd && (
+                        <TableCell>
+                          <Typography variant="body2" color="text.secondary">
+                            {String(actualIndex + 1).padStart(2, '0')}
+                          </Typography>
+                        </TableCell>
+                      )}
+                      {gridMaster.gridColumns
+                        .filter((col) => col.displayable && col.code !== "ID") // Filter out the ID column
+                        .map((col) => (
+                          <TableCell key={col.code}>
+                            {col.code === "name" || col.code === "fullName" ? (
+                              <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                                <Avatar
+                                  sx={{
+                                    width: 32,
+                                    height: 32,
+                                    bgcolor: getRandomColor(),
+                                    fontSize: '14px'
+                                  }}
+                                >
+                                  {generateInitials(row[col.code] || 'N/A')}
+                                </Avatar>
+                                <Typography variant="body2" color="text.primary">
+                                  {row[col.code]}
+                                </Typography>
+                              </Box>
+                            ) : (
+                              <Typography variant="body2" color="text.secondary">
+                                {row[col.code]}
+                              </Typography>
+                            )}
+                          </TableCell>
+                        ))}
+                      {gridMaster.actionReqd && (
+                        <TableCell align="center">
+                          <Box sx={{ display: 'flex', gap: 1, justifyContent: 'center' }}>
+                            <IconButton size="small" color="primary">
+                              <VisibilityIcon fontSize="small" />
+                            </IconButton>
+                            <IconButton size="small" color="primary">
+                              <EditIcon fontSize="small" />
+                            </IconButton>
+                            <IconButton size="small" color="error">
+                              <DeleteIcon fontSize="small" />
+                            </IconButton>
+                          </Box>
+                        </TableCell>
+                      )}
+                    </TableRow>
+                  );
+                })}
+                {paginatedData.length === 0 && (
+                  <TableRow>
+                    <TableCell
+                      colSpan={
+                        (gridMaster.indexReqd ? 1 : 0) +
+                        gridMaster.gridColumns.filter(col => col.displayable && col.code !== "ID").length + // Adjust colSpan for removed ID
+                        (gridMaster.actionReqd ? 1 : 0) +
+                        1
+                      }
+                      align="center"
+                    >
+                      <Typography variant="body2" color="text.secondary" sx={{ py: 3 }}>
+                        No records found
+                      </Typography>
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </Paper>
+
+        {/* Footer with pagination and controls */}
+        <Box sx={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          p: 2,
+          bgcolor: 'background.paper',
+          borderRadius: 2,
+          border: '1px solid',
+          borderColor: 'divider'
+        }}>
+          <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+            <Typography variant="body2" color="text.secondary">
+              Download by
+            </Typography>
+            <FormControl size="small" sx={{ minWidth: 150 }}>
+              <Select
+                displayEmpty
+                defaultValue=""
+                sx={{ fontSize: '14px' }}
+              >
+                <MenuItem value="" disabled>
+                  <Typography variant="body2" color="text.secondary">
+                    Select File Format
+                  </Typography>
+                </MenuItem>
+                <MenuItem value="csv">CSV</MenuItem>
+                <MenuItem value="xlsx">Excel</MenuItem>
+                <MenuItem value="pdf">PDF</MenuItem>
+              </Select>
+            </FormControl>
+          </Box>
+
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <Button
+                variant="text"
+                size="small"
+                startIcon={<ArrowDownwardIcon />}
+                sx={{ textTransform: 'none', color: 'text.secondary' }}
+              >
+                First
+              </Button>
+              <Button
+                variant="text"
+                size="small"
+                startIcon={<ArrowDownwardIcon />}
+                sx={{ textTransform: 'none', color: 'text.secondary' }}
+              >
+                Back
+              </Button>
+            </Box>
+            <Pagination
+              count={totalPages}
+              page={page}
+              onChange={handleChangePage}
+              variant="outlined"
+              shape="rounded"
+              color="primary"
+              size="small"
+              sx={{
+                '& .MuiPaginationItem-root': {
+                  fontSize: '14px',
+                  minWidth: '32px',
+                  height: '32px'
+                }
+              }}
+            />
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <Button
+                variant="text"
+                size="small"
+                endIcon={<ArrowUpwardIcon />}
+                sx={{ textTransform: 'none', color: 'text.secondary' }}
+              >
+                Next
+              </Button>
+              <Button
+                variant="text"
+                size="small"
+                endIcon={<ArrowUpwardIcon />}
+                sx={{ textTransform: 'none', color: 'text.secondary' }}
+              >
+                Last
+              </Button>
+            </Box>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <Typography variant="body2" color="text.secondary">
+                Reload Pages
+              </Typography>
+              <FormControl size="small" sx={{ minWidth: 80 }}>
+                <Select
+                  value={rowsPerPage}
+                  onChange={handleChangeRowsPerPage}
+                  sx={{ fontSize: '14px' }}
+                >
+                  {(gridMaster.gridPagination?.recordPerPage || [5, 10, 25, 50, 100]).map(size => (
+                    <MenuItem key={size} value={size}>{size}</MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Box>
+          </Box>
         </Box>
       </Box>
-
-      <Paper sx={{ height: "100%", maxWidth: "100vw", width: "100%" }}>
-        <DataGrid
-          rows={filteredRows}
-          autoHeight
-          columns={columns}
-          initialState={{
-            pagination: {
-              paginationModel: { page: 0, pageSize },
-            },
-          }}
-          pageSizeOptions={
-            gridMaster.gridPagination.recordPerPage || [5, 10, 20]
-          }
-          checkboxSelection
-          //   sx={{
-          //     "& .MuiDataGrid-virtualScroller": {
-          //       overflowX: "auto",
-          //       overflowY: "auto",
-          //     },
-          //   }}
-
-          sx={{
-            // optional: if you want inner scroll inside grid instead of box
-            "& .MuiDataGrid-virtualScroller": {
-              overflow: "auto",
-            },
-          }}
-        />
-      </Paper>
-    </Box>
   );
 };
 
