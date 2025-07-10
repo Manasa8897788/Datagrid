@@ -147,10 +147,11 @@ export const customerGrid: GridMaster = {
       gridId: 1,
       code: "currency",
       title: "Currency",
-      sortable: false,
+      sortable: true,
       searchReqd: false,
       filterable: true,
       displayable: true,
+      enumValues: ["SUCCESS", "FAILED", "PENDING"],
     },
   ],
   gridActions: {

@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useEffect, useRef, useState } from "react";
 import {
   Box,
@@ -9,18 +11,20 @@ import {
   Button,
   Divider,
 } from "@mui/material";
-import { customerGrid } from "../data/data";
+import type { GridMaster } from "../models/gridMaster";
 
 type SortByDataProps = {
   onClose?: () => void;
   handleSort?: (key: any) => void;
   sortActionKey: any;
+  customerGrid: GridMaster;
 };
 
 export default function SortByData({
   onClose,
   sortActionKey,
   handleSort,
+  customerGrid,
 }: SortByDataProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const sortableColumns = customerGrid.gridColumns.filter(
@@ -30,29 +34,57 @@ export default function SortByData({
   const [selectedColumns, setSelectedColumns] = useState<
     typeof customerGrid.gridColumns
   >([]);
+  const [selectedEnums, setSelectedEnums] = useState<Record<string, string>>(
+    {}
+  );
   const [sortType, setSortType] = useState<"desc" | "unsort">("desc");
+
+  const handleRadioChange = (
+    event: React.ChangeEvent<HTMLInputElement>,
+    columnCode: string
+  ) => {
+    const value = event.target.value;
+    setSelectedEnums((prev) => ({
+      ...prev,
+      [columnCode]: value,
+    }));
+  };
 
   const handleCheckboxChange = (
     column: (typeof customerGrid.gridColumns)[0]
   ) => {
-    setSelectedColumns((prev) =>
-      prev.some((col) => col.code === column.code)
-        ? prev.filter((col) => col.code !== column.code)
-        : [...prev, column]
+    const isCurrentlySelected = selectedColumns.some(
+      (col) => col.code === column.code
     );
+
+    if (isCurrentlySelected) {
+      // Remove column and its enum value
+      setSelectedColumns((prev) =>
+        prev.filter((col) => col.code !== column.code)
+      );
+      setSelectedEnums((prev) => {
+        const newEnums = { ...prev };
+        delete newEnums[column.code];
+        return newEnums;
+      });
+    } else {
+      // Add column
+      setSelectedColumns((prev) => [...prev, column]);
+    }
   };
 
   const handleReset = () => {
     setSelectedColumns([]);
+    setSelectedEnums({});
     setSortType("desc");
     const value = {
       order: "desc",
       sortActionKeys: [],
+      selectedEnums: {},
     };
     if (handleSort) {
       handleSort(value);
     }
-
     if (onClose) {
       onClose();
     }
@@ -61,6 +93,7 @@ export default function SortByData({
   const handleApply = () => {
     console.log("Selected Columns:", selectedColumns);
     console.log("sortActionKey", sortActionKey);
+    console.log("selectedEnum", selectedEnums);
 
     if (sortActionKey) {
       const key: keyof (typeof selectedColumns)[0] = sortActionKey;
@@ -69,12 +102,11 @@ export default function SortByData({
         const value = {
           order: sortType,
           sortActionKeys: filteredKeys,
+          selectedEnums: selectedEnums,
         };
         handleSort(value);
       }
     }
-
-    console.log("Sort Type:", sortType);
     if (onClose) {
       onClose();
     }
@@ -109,30 +141,49 @@ export default function SortByData({
       <Typography variant="subtitle1" fontWeight={600} gutterBottom>
         Sort By
       </Typography>
-
       <Typography variant="body2" fontWeight={500} mb={1}>
         Columns
       </Typography>
-
-      {sortableColumns.map((column) => (
-        <FormControlLabel
-          key={column.code}
-          control={
-            <Checkbox
-              checked={selectedColumns.some((col) => col.code === column.code)}
-              onChange={() => handleCheckboxChange(column)}
+      {sortableColumns.map((column) => {
+        const isChecked = selectedColumns.some(
+          (col) => col.code === column.code
+        );
+        return (
+          <React.Fragment key={column.code}>
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={isChecked}
+                  onChange={() => handleCheckboxChange(column)}
+                />
+              }
+              label={column.title}
+              sx={{ display: "block", ml: 1 }}
             />
-          }
-          label={column.title}
-          sx={{ display: "block", ml: 1 }}
-        />
-      ))}
+            {column.enumValues && isChecked && (
+              <RadioGroup
+                value={selectedEnums[column.code] || ""}
+                onChange={(e) => handleRadioChange(e, column.code)}
+                row
+                sx={{ ml: 3 }}
+              >
+                {column.enumValues.map((val) => (
+                  <FormControlLabel
+                    key={val}
+                    value={val}
+                    control={<Radio />}
+                    label={val}
+                  />
+                ))}
+              </RadioGroup>
+            )}
+          </React.Fragment>
+        );
+      })}
       <Divider sx={{ my: 2 }} />
-
       <Typography variant="body2" fontWeight={500} mb={1}>
         Sort Type
       </Typography>
-
       <RadioGroup
         value={sortType}
         onChange={(e) => setSortType(e.target.value as "desc" | "unsort")}
@@ -144,7 +195,6 @@ export default function SortByData({
         />
         <FormControlLabel value="unsort" control={<Radio />} label="Unsort" />
       </RadioGroup>
-
       <Box mt={2} display="flex" justifyContent="space-between">
         <Button
           variant="outlined"

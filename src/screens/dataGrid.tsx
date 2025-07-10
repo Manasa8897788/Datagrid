@@ -216,23 +216,17 @@ const DataTable: React.FC<DataTableProps> = ({
     );
 
     if (format === "xlsx") {
-      exportToExcel(
-        filteredData,
-        exportableColumns,
-        "DataTableExport"
-      );
+      exportToExcel(filteredData, exportableColumns, "DataTableExport");
     }
 
     if (format === "pdf") {
       exportToPDF(
-          filteredData,
-          exportableColumns.map(col => ({ code: col.code, name: col.title })),
-          "DataTableExport"
+        filteredData,
+        exportableColumns.map((col) => ({ code: col.code, name: col.title })),
+        "DataTableExport"
       );
     }
   };
-
-
 
   return (
     <Box sx={{ p: 1 }}>
@@ -329,6 +323,7 @@ const DataTable: React.FC<DataTableProps> = ({
                       onClose={() => setShowSort(false)}
                       sortActionKey={gridMaster.sortActionKey}
                       handleSort={handleSort && handleSort}
+                      customerGrid={gridMaster}
                     />
                   </Box>
                 )}
@@ -730,7 +725,7 @@ const DataTable: React.FC<DataTableProps> = ({
           <FormControl size="small" sx={{ minWidth: 150 }}>
             <Select
               displayEmpty
-              value={exportFormat} 
+              value={exportFormat}
               onChange={handleExportFormatChange}
               sx={{ fontSize: "14px" }}
             >
@@ -743,7 +738,6 @@ const DataTable: React.FC<DataTableProps> = ({
               <MenuItem value="pdf">PDF</MenuItem>
             </Select>
           </FormControl>
-
         </Box>
 
         <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>

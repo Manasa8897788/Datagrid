@@ -1,5 +1,4 @@
 export interface GridColumns {
-  
   id: number;
   gridId: number;
   code: string;
@@ -8,4 +7,5 @@ export interface GridColumns {
   searchReqd: boolean;
   filterable: boolean;
   displayable: boolean;
+  enumValues?: any[];
 }
