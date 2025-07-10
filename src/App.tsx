@@ -1,9 +1,13 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import DataTable from "./screens/dataGrid";
 import { Box } from "@mui/material";
 import { customerGrid, customerRows } from "./screens/data/data";
+import dataService from "./services/dataService";
 
 function App() {
+  const [customData, setCustomData] = useState<any>([]);
+
+
   const handleDelete = () => {
     console.log("handle Delete");
   };
@@ -16,6 +20,31 @@ function App() {
   const handleEdit = (value: any) => {
     console.log("handleEdit", value);
   };
+  
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await dataService.getCustomerMasterList();
+        console.log("Response from getCustomerMasterList:", response.content);
+
+        if (response.content && Array.isArray(response.content)) {
+          setCustomData(response.content);
+        } else {
+          // setError("Invalid response data");
+        }
+      } catch (err) {
+        console.error(err);
+        // setError("Failed to load data");
+      } finally {
+        // setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  console.log("Custom Data:", customData[0]);
 
   return (
     <div className="App">
@@ -38,13 +67,13 @@ function App() {
           }}
         >
           {" "}
-          {/* this box takes 80% width */}
-          <DataTable
+         
+           <DataTable
             handleDelete={handleDelete}
             handleDeleteCell={handleDeleteCell}
             handleView={handleView}
             handleEdit={handleEdit}
-            data={customerRows}
+            data={customData}
             gridMaster={customerGrid}
           />
         </Box>
@@ -53,4 +82,5 @@ function App() {
   );
 }
 
-export default App;
+
+export default App; 

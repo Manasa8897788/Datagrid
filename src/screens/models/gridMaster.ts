@@ -2,6 +2,8 @@ import { GridColumns } from "./gridColums";
 import { GridPagination } from "./gridPagination";
 
 export interface GridMaster {
+  id: number;
+  targetObject: string;
   title: string;
   filterReqd: boolean;
   searchReqd: boolean;
