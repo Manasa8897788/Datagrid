@@ -43,13 +43,24 @@ import { GridColumns } from "./models/gridColums";
 interface DataTableProps {
   data: any[];
   gridMaster: GridMaster;
+  handleDelete?: () => void;
+  handleDeleteCell?: (key?: any) => void;
+  handleView?: (key?: any) => void;
+  handleEdit?: (key?: any) => void;
 }
 
 const getSearchableFields = (cols: GridColumns[]): string[] => {
   return cols.filter((col) => col.searchReqd).map((col) => col.code);
 };
 
-const DataTable: React.FC<DataTableProps> = ({ data, gridMaster }) => {
+const DataTable: React.FC<DataTableProps> = ({
+  data,
+  gridMaster,
+  handleDelete,
+  handleDeleteCell,
+  handleView,
+  handleEdit,
+}) => {
   const searchableFields = getSearchableFields(gridMaster.gridColumns);
 
   const [searchText, setSearchText] = useState("");
@@ -72,13 +83,39 @@ const DataTable: React.FC<DataTableProps> = ({ data, gridMaster }) => {
     );
     setFilteredData(filtered);
     setPage(1);
-  }, [searchText, data, searchableFields]);
+  }, [searchText, data]);
 
   const handleChangePage = (
     event: React.ChangeEvent<unknown>,
     newPage: number
   ) => {
     setPage(newPage);
+  };
+
+  const onHandleDelete = () => {
+    if (handleDelete) {
+      handleDelete();
+    }
+    console.log("delete clicked");
+  };
+  const ondeleteCell = (key: any) => {
+    console.log("delete", key);
+    if (handleDeleteCell) {
+      handleDeleteCell(key);
+    }
+  };
+
+  const onHandleView = (key: any) => {
+    console.log("view", key);
+    if (handleView) {
+      handleView(key);
+    }
+  };
+  const onHandleEdit = (key: any) => {
+    console.log("edit ", key);
+    if (handleEdit) {
+      handleEdit(key);
+    }
   };
 
   const handleChangeRowsPerPage = (
@@ -116,7 +153,6 @@ const DataTable: React.FC<DataTableProps> = ({ data, gridMaster }) => {
         selectedRows.slice(selectedIndex + 1)
       );
     }
-
     setSelectedRows(newSelected);
   };
 
@@ -238,7 +274,7 @@ const DataTable: React.FC<DataTableProps> = ({ data, gridMaster }) => {
         </Box>
 
         <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-          <IconButton>
+          <IconButton onClick={onHandleDelete}>
             <DeleteIcon />
           </IconButton>
 
@@ -297,7 +333,7 @@ const DataTable: React.FC<DataTableProps> = ({ data, gridMaster }) => {
                   </TableCell>
                 )}
                 {gridMaster.gridColumns
-                  .filter((col) => col.displayable && col.code !== "ID") // Filter out the ID column
+                  .filter((col) => col.displayable && col.code !== "ID")
                   .map((col) => (
                     <TableCell key={col.code}>
                       <Typography
@@ -327,6 +363,10 @@ const DataTable: React.FC<DataTableProps> = ({ data, gridMaster }) => {
                 const isSelected = selectedRows.includes(index);
                 const actualIndex = (page - 1) * rowsPerPage + index;
 
+                const targetKey = Object.keys(row).filter((each) => {
+                  return each === gridMaster.actionKey ? each : null;
+                });
+
                 return (
                   <TableRow
                     key={index}
@@ -352,38 +392,47 @@ const DataTable: React.FC<DataTableProps> = ({ data, gridMaster }) => {
                       </TableCell>
                     )}
                     {gridMaster.gridColumns
-                      .filter((col) => col.displayable && col.code !== "ID") // Filter out the ID column
-                      .map((col) => (
-                        <TableCell key={col.code}>
-                          {col.code === "name" || col.code === "fullName" ? (
-                            <Box
-                              sx={{
-                                display: "flex",
-                                alignItems: "center",
-                                gap: 1,
-                              }}
-                            >
-                              <Avatar
+                      .filter((col) => col.displayable && col.code !== "ID")
+                      .map((col, idx) => (
+                        <>
+                          <TableCell key={col.code}>
+                            {col.code === "name" || col.code === "fullName" ? (
+                              <Box
                                 sx={{
-                                  width: 32,
-                                  height: 32,
-                                  bgcolor: getRandomColor(),
-                                  fontSize: "14px",
+                                  display: "flex",
+                                  alignItems: "center",
+                                  gap: 1,
                                 }}
                               >
-                                {generateInitials(row[col.code] || "N/A")}
-                              </Avatar>
-                              <Typography variant="body2" color="text.primary">
+                                <Avatar
+                                  sx={{
+                                    width: 32,
+                                    height: 32,
+                                    bgcolor: getRandomColor(),
+                                    fontSize: "14px",
+                                  }}
+                                >
+                                  {generateInitials(row[col.code] || "N/A")}
+                                </Avatar>
+                                <Typography
+                                  variant="body2"
+                                  color="text.primary"
+                                >
+                                  {row[col.code]}
+                                </Typography>
+                              </Box>
+                            ) : (
+                              <Typography
+                                variant="body2"
+                                color="text.secondary"
+                              >
                                 {row[col.code]}
                               </Typography>
-                            </Box>
-                          ) : (
-                            <Typography variant="body2" color="text.secondary">
-                              {row[col.code]}
-                            </Typography>
-                          )}
-                        </TableCell>
+                            )}
+                          </TableCell>
+                        </>
                       ))}
+
                     {gridMaster.actionReqd && (
                       <TableCell align="center">
                         <Box
@@ -393,13 +442,40 @@ const DataTable: React.FC<DataTableProps> = ({ data, gridMaster }) => {
                             justifyContent: "center",
                           }}
                         >
-                          <IconButton size="small" color="primary">
+                          <IconButton
+                            onClick={() => {
+                              if (targetKey[0]) {
+                                const key: keyof typeof row = targetKey[0];
+                                onHandleView(row[key]);
+                              }
+                            }}
+                            size="small"
+                            color="primary"
+                          >
                             <VisibilityIcon fontSize="small" />
                           </IconButton>
-                          <IconButton size="small" color="primary">
+                          <IconButton
+                            onClick={() => {
+                              if (targetKey[0]) {
+                                const key: keyof typeof row = targetKey[0];
+                                onHandleEdit(row[key]);
+                              }
+                            }}
+                            size="small"
+                            color="primary"
+                          >
                             <EditIcon fontSize="small" />
                           </IconButton>
-                          <IconButton size="small" color="error">
+                          <IconButton
+                            onClick={() => {
+                              if (targetKey[0]) {
+                                const key: keyof typeof row = targetKey[0];
+                                ondeleteCell(row[key]);
+                              }
+                            }}
+                            size="small"
+                            color="error"
+                          >
                             <DeleteIcon fontSize="small" />
                           </IconButton>
                         </Box>

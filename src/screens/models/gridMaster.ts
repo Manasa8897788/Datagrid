@@ -2,8 +2,6 @@ import { GridColumns } from "./gridColums";
 import { GridPagination } from "./gridPagination";
 
 export interface GridMaster {
-  id: number;
-  targetObject: string;
   title: string;
   filterReqd: boolean;
   searchReqd: boolean;
@@ -14,6 +12,7 @@ export interface GridMaster {
   indexReqd: boolean;
   dynamicLoad: boolean;
   recordsPerPage: number;
+  actionKey: any;
   gridPagination: GridPagination;
   gridColumns: GridColumns[];
   gridActions: Record<string, EndPoint>;

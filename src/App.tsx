@@ -4,6 +4,19 @@ import { Box } from "@mui/material";
 import { customerGrid, customerRows } from "./screens/data/data";
 
 function App() {
+  const handleDelete = () => {
+    console.log("handle Delete");
+  };
+  const handleDeleteCell = (value: any) => {
+    console.log("handleDeleteCell", value);
+  };
+  const handleView = (value: any) => {
+    console.log("handleView", value);
+  };
+  const handleEdit = (value: any) => {
+    console.log("handleEdit", value);
+  };
+
   return (
     <div className="App">
       <Box
@@ -26,7 +39,14 @@ function App() {
         >
           {" "}
           {/* this box takes 80% width */}
-          <DataTable data={customerRows} gridMaster={customerGrid} />
+          <DataTable
+            handleDelete={handleDelete}
+            handleDeleteCell={handleDeleteCell}
+            handleView={handleView}
+            handleEdit={handleEdit}
+            data={customerRows}
+            gridMaster={customerGrid}
+          />
         </Box>
       </Box>
     </div>
