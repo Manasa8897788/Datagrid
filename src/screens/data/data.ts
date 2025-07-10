@@ -18,11 +18,10 @@ export const customerGrid: GridMaster = {
   gridPagination: {
     reqd: true,
     pageCount: 10,
-    recordPerPage: [10, 15, 20],
+    recordPerPage: [5, 10, 15, 20],
     dynamicLoad: false,
   },
   gridColumns: [
-
     {
       id: 2,
       gridId: 1,

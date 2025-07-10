@@ -9,7 +9,11 @@ function App() {
         sx={{
           display: "flex",
           justifyContent: "center",
+          alignItems: "center",
+          background: "#E8EFFB",
+          // minHeight: "100vh",
           width: "100%",
+          minHeight: "100vh",
         }}
       >
         <Customers />
