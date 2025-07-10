@@ -41,6 +41,7 @@ import {
 import { GridMaster } from "./models/gridMaster";
 import { GridColumns } from "./models/gridColums";
 import SortByData from "./sort/sort";
+import { exportToExcel } from "./excelExport";
 
 interface DataTableProps {
   data: any[];
@@ -199,6 +200,21 @@ const DataTable: React.FC<DataTableProps> = ({
     ];
     return colors[Math.floor(Math.random() * colors.length)];
   };
+    const handleExportFormatChange = (event: any) => {
+        const format = event.target.value;
+
+        if (format === "xlsx") {
+            exportToExcel(
+                filteredData,
+                gridMaster.gridColumns.filter((col) => col.displayable && col.code !== "ID"),
+                "DataTableExport"
+            );
+        }
+
+        if (format === "pdf") {
+        }
+    };
+
 
   return (
     <Box sx={{ p: 1 }}>
@@ -689,18 +705,24 @@ const DataTable: React.FC<DataTableProps> = ({
           <Typography variant="body2" color="text.secondary">
             Download by
           </Typography>
-          <FormControl size="small" sx={{ minWidth: 150 }}>
-            <Select displayEmpty defaultValue="" sx={{ fontSize: "14px" }}>
-              <MenuItem value="" disabled>
-                <Typography variant="body2" color="text.secondary">
-                  Select File Format
-                </Typography>
-              </MenuItem>
-              <MenuItem value="csv">CSV</MenuItem>
-              <MenuItem value="xlsx">Excel</MenuItem>
-              <MenuItem value="pdf">PDF</MenuItem>
-            </Select>
-          </FormControl>
+                    <FormControl size="small" sx={{ minWidth: 150 }}>
+                        <Select
+                            displayEmpty
+                            value=""
+                            onChange={handleExportFormatChange}
+                            sx={{ fontSize: "14px" }}
+                        >
+                            <MenuItem value="" disabled>
+                                <Typography variant="body2" color="text.secondary">
+                                    Select File Format
+                                </Typography>
+                            </MenuItem>
+                            <MenuItem value="xlsx">Excel</MenuItem>
+                            <MenuItem value="pdf">PDF</MenuItem>
+                        </Select>
+                    </FormControl>
+
+
         </Box>
 
         <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
