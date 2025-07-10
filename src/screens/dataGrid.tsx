@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   Box,
   Table,
@@ -22,6 +22,7 @@ import {
   Pagination,
   Chip,
   Button,
+  ClickAwayListener,
 } from "@mui/material";
 import {
   Search as SearchIcon,
@@ -39,6 +40,7 @@ import {
 } from "@mui/icons-material";
 import { GridMaster } from "./models/gridMaster";
 import { GridColumns } from "./models/gridColums";
+import SortByData from "./sort/sort";
 
 interface DataTableProps {
   data: any[];
@@ -71,6 +73,12 @@ const DataTable: React.FC<DataTableProps> = ({
   );
   const [selectedRows, setSelectedRows] = useState<number[]>([]);
   const [view, setView] = useState("list");
+  const [showSort, setShowSort] = useState(false);
+  const triggerRef = useRef<HTMLDivElement>(null);
+
+  const handleToggle = () => {
+    setShowSort((prev) => !prev);
+  };
 
   useEffect(() => {
     const lowerText = searchText.toLowerCase();
@@ -246,23 +254,48 @@ const DataTable: React.FC<DataTableProps> = ({
             />
           )}
 
-          <Box
-            sx={{
-              display: "flex",
-              alignItems: "center",
-              gap: 0.5,
-              cursor: "pointer",
-              px: 1,
-              py: 0.5,
-              border: "1px solid #e0e0e0",
-              borderRadius: 1,
-              height: 30,
-            }}
-          >
-            <SortIcon sx={{ fontSize: 20, color: gridMaster.primaryColour }} />
-            <Typography variant="body2" color="text.secondary">
-              Sort By
-            </Typography>
+          <Box sx={{ position: "relative", display: "inline-block" }}>
+            <ClickAwayListener onClickAway={() => setShowSort(false)}>
+              <Box>
+                <Box
+                  ref={triggerRef}
+                  onClick={handleToggle}
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 0.5,
+                    cursor: "pointer",
+                    px: 1,
+                    py: 0.5,
+                    border: "1px solid #e0e0e0",
+                    borderRadius: 1,
+                    height: 30,
+                  }}
+                >
+                  <SortIcon
+                    sx={{ fontSize: 20, color: gridMaster.primaryColour }}
+                  />
+                  <Typography variant="body2" color="text.secondary">
+                    Sort By
+                  </Typography>
+                </Box>
+
+                {showSort && (
+                  <Box
+                    sx={{
+                      position: "absolute",
+                      top: "100%",
+                      mt: 1,
+                      zIndex: 10,
+                      boxShadow: 3,
+                      backgroundColor: "background.paper", // prevent transparency issues
+                    }}
+                  >
+                    <SortByData onClose={() => setShowSort(false)} />
+                  </Box>
+                )}
+              </Box>
+            </ClickAwayListener>
           </Box>
 
           <Box
