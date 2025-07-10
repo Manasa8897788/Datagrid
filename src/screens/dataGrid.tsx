@@ -42,6 +42,7 @@ import { GridMaster } from "./models/gridMaster";
 import { GridColumns } from "./models/gridColums";
 import SortByData from "./sort/sort";
 import { exportToExcel } from "./excelExport";
+import { exportToPDF } from "./exportPdf";
 
 interface DataTableProps {
   data: any[];
@@ -69,6 +70,7 @@ const DataTable: React.FC<DataTableProps> = ({
   handleFilter,
 }) => {
   const searchableFields = getSearchableFields(gridMaster.gridColumns);
+  const [exportFormat, setExportFormat] = useState("");
 
   const [searchText, setSearchText] = useState("");
   const [filteredData, setFilteredData] = useState(data);
@@ -204,22 +206,33 @@ const DataTable: React.FC<DataTableProps> = ({
     ];
     return colors[Math.floor(Math.random() * colors.length)];
   };
+
   const handleExportFormatChange = (event: any) => {
     const format = event.target.value;
+    setExportFormat(format); // <-- sets selected format for display
+
+    const exportableColumns = gridMaster.gridColumns.filter(
+      (col) => col.displayable && col.code !== "ID"
+    );
 
     if (format === "xlsx") {
       exportToExcel(
         filteredData,
-        gridMaster.gridColumns.filter(
-          (col) => col.displayable && col.code !== "ID"
-        ),
+        exportableColumns,
         "DataTableExport"
       );
     }
 
     if (format === "pdf") {
+      exportToPDF(
+          filteredData,
+          exportableColumns.map(col => ({ code: col.code, name: col.title })),
+          "DataTableExport"
+      );
     }
   };
+
+
 
   return (
     <Box sx={{ p: 1 }}>
@@ -717,7 +730,7 @@ const DataTable: React.FC<DataTableProps> = ({
           <FormControl size="small" sx={{ minWidth: 150 }}>
             <Select
               displayEmpty
-              value=""
+              value={exportFormat} 
               onChange={handleExportFormatChange}
               sx={{ fontSize: "14px" }}
             >
@@ -730,6 +743,7 @@ const DataTable: React.FC<DataTableProps> = ({
               <MenuItem value="pdf">PDF</MenuItem>
             </Select>
           </FormControl>
+
         </Box>
 
         <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
