@@ -15,6 +15,7 @@ export interface GridMaster {
   dynamicLoad: boolean;
   recordsPerPage: number;
   actionKey: any;
+  sortActionKey: any;
   gridPagination: GridPagination;
   gridColumns: GridColumns[];
   gridActions: Record<string, EndPoint>;

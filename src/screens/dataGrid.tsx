@@ -50,6 +50,8 @@ interface DataTableProps {
   handleDeleteCell?: (key?: any) => void;
   handleView?: (key?: any) => void;
   handleEdit?: (key?: any) => void;
+  handleSort?: (key?: any) => void;
+  handleFilter?: (key?: any) => void;
 }
 
 const getSearchableFields = (cols: GridColumns[]): string[] => {
@@ -63,6 +65,8 @@ const DataTable: React.FC<DataTableProps> = ({
   handleDeleteCell,
   handleView,
   handleEdit,
+  handleSort,
+  handleFilter,
 }) => {
   const searchableFields = getSearchableFields(gridMaster.gridColumns);
 
@@ -200,21 +204,22 @@ const DataTable: React.FC<DataTableProps> = ({
     ];
     return colors[Math.floor(Math.random() * colors.length)];
   };
-    const handleExportFormatChange = (event: any) => {
-        const format = event.target.value;
+  const handleExportFormatChange = (event: any) => {
+    const format = event.target.value;
 
-        if (format === "xlsx") {
-            exportToExcel(
-                filteredData,
-                gridMaster.gridColumns.filter((col) => col.displayable && col.code !== "ID"),
-                "DataTableExport"
-            );
-        }
+    if (format === "xlsx") {
+      exportToExcel(
+        filteredData,
+        gridMaster.gridColumns.filter(
+          (col) => col.displayable && col.code !== "ID"
+        ),
+        "DataTableExport"
+      );
+    }
 
-        if (format === "pdf") {
-        }
-    };
-
+    if (format === "pdf") {
+    }
+  };
 
   return (
     <Box sx={{ p: 1 }}>
@@ -304,10 +309,14 @@ const DataTable: React.FC<DataTableProps> = ({
                       mt: 1,
                       zIndex: 10,
                       boxShadow: 3,
-                      backgroundColor: "background.paper", // prevent transparency issues
+                      backgroundColor: "background.paper",
                     }}
                   >
-                    <SortByData onClose={() => setShowSort(false)} />
+                    <SortByData
+                      onClose={() => setShowSort(false)}
+                      sortActionKey={gridMaster.sortActionKey}
+                      handleSort={handleSort && handleSort}
+                    />
                   </Box>
                 )}
               </Box>
@@ -705,28 +714,26 @@ const DataTable: React.FC<DataTableProps> = ({
           <Typography variant="body2" color="text.secondary">
             Download by
           </Typography>
-                    <FormControl size="small" sx={{ minWidth: 150 }}>
-                        <Select
-                            displayEmpty
-                            value=""
-                            onChange={handleExportFormatChange}
-                            sx={{ fontSize: "14px" }}
-                        >
-                            <MenuItem value="" disabled>
-                                <Typography variant="body2" color="text.secondary">
-                                    Select File Format
-                                </Typography>
-                            </MenuItem>
-                            <MenuItem value="xlsx">Excel</MenuItem>
-                            <MenuItem value="pdf">PDF</MenuItem>
-                        </Select>
-                    </FormControl>
-
-
+          <FormControl size="small" sx={{ minWidth: 150 }}>
+            <Select
+              displayEmpty
+              value=""
+              onChange={handleExportFormatChange}
+              sx={{ fontSize: "14px" }}
+            >
+              <MenuItem value="" disabled>
+                <Typography variant="body2" color="text.secondary">
+                  Select File Format
+                </Typography>
+              </MenuItem>
+              <MenuItem value="xlsx">Excel</MenuItem>
+              <MenuItem value="pdf">PDF</MenuItem>
+            </Select>
+          </FormControl>
         </Box>
 
         <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+          {/* <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
             <Button
               variant="text"
               size="small"
@@ -743,7 +750,7 @@ const DataTable: React.FC<DataTableProps> = ({
             >
               Back
             </Button>
-          </Box>
+          </Box> */}
           <Pagination
             count={totalPages}
             page={page}
@@ -760,7 +767,7 @@ const DataTable: React.FC<DataTableProps> = ({
               },
             }}
           />
-          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+          {/* <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
             <Button
               variant="text"
               size="small"
@@ -777,7 +784,7 @@ const DataTable: React.FC<DataTableProps> = ({
             >
               Last
             </Button>
-          </Box>
+          </Box> */}
           <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
             <Typography variant="body2" color="text.secondary">
               Reload Pages

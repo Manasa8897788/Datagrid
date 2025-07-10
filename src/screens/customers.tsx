@@ -23,6 +23,13 @@ const Customers: React.FC = () => {
   const handleEdit = (value: any) => {
     console.log("handleEdit", value);
   };
+  const handleSort = (value: any) => {
+    console.log("handleSort ->", value);
+  };
+
+  const handleFilter = (value: any) => {
+    console.log("handleEdit", value);
+  };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -58,6 +65,8 @@ const Customers: React.FC = () => {
         handleDeleteCell={handleDeleteCell}
         handleView={handleView}
         handleEdit={handleEdit}
+        handleSort={handleSort}
+        handleFilter={handleFilter}
         data={customData}
         gridMaster={customerGrid}
       />

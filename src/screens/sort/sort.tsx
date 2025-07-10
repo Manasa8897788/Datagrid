@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from "react";
 import {
   Box,
   Typography,
@@ -8,22 +8,33 @@ import {
   Radio,
   Button,
   Divider,
-} from '@mui/material';
-import { customerGrid } from '../data/data';
-
-
+} from "@mui/material";
+import { customerGrid } from "../data/data";
 
 type SortByDataProps = {
   onClose?: () => void;
+  handleSort?: (key: any) => void;
+  sortActionKey: any;
 };
 
-export default function SortByData({ onClose }: SortByDataProps)  {
-     const containerRef = useRef<HTMLDivElement>(null); 
- const sortableColumns = customerGrid.gridColumns.filter((col) => col.sortable);
+export default function SortByData({
+  onClose,
+  sortActionKey,
+  handleSort,
+}: SortByDataProps) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const sortableColumns = customerGrid.gridColumns.filter(
+    (col) => col.sortable
+  );
 
-  const [selectedColumns, setSelectedColumns] = useState<typeof customerGrid.gridColumns>([]);  const [sortType, setSortType] = useState<'desc' | 'unsort'>('desc');
+  const [selectedColumns, setSelectedColumns] = useState<
+    typeof customerGrid.gridColumns
+  >([]);
+  const [sortType, setSortType] = useState<"desc" | "unsort">("desc");
 
-  const handleCheckboxChange = (column: typeof customerGrid.gridColumns[0]) => {
+  const handleCheckboxChange = (
+    column: (typeof customerGrid.gridColumns)[0]
+  ) => {
     setSelectedColumns((prev) =>
       prev.some((col) => col.code === column.code)
         ? prev.filter((col) => col.code !== column.code)
@@ -31,45 +42,68 @@ export default function SortByData({ onClose }: SortByDataProps)  {
     );
   };
 
- 
   const handleReset = () => {
     setSelectedColumns([]);
-    setSortType('desc');
- if (onClose) {
-      onClose(); 
-    }  };
+    setSortType("desc");
+    const value = {
+      order: "desc",
+      sortActionKeys: [],
+    };
+    if (handleSort) {
+      handleSort(value);
+    }
 
-  const handleApply = () => {
-    console.log('Selected Columns:', selectedColumns); 
-    console.log('Sort Type:', sortType);
-     if (onClose) {
-      onClose(); 
+    if (onClose) {
+      onClose();
     }
   };
 
+  const handleApply = () => {
+    console.log("Selected Columns:", selectedColumns);
+    console.log("sortActionKey", sortActionKey);
 
-   useEffect(() => {
+    if (sortActionKey) {
+      const key: keyof (typeof selectedColumns)[0] = sortActionKey;
+      const filteredKeys = selectedColumns.map((each) => each[key]);
+      if (handleSort) {
+        const value = {
+          order: sortType,
+          sortActionKeys: filteredKeys,
+        };
+        handleSort(value);
+      }
+    }
+
+    console.log("Sort Type:", sortType);
+    if (onClose) {
+      onClose();
+    }
+  };
+
+  useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+      if (
+        containerRef.current &&
+        !containerRef.current.contains(event.target as Node)
+      ) {
         if (onClose) onClose();
       }
     };
-    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [onClose]);
 
-
   return (
     <Box
-     ref={containerRef} 
+      ref={containerRef}
       sx={{
         width: 240,
-        border: '1px solid #e0e0e0',
+        border: "1px solid #e0e0e0",
         borderRadius: 2,
         p: 2,
-        backgroundColor:"#fff"
+        backgroundColor: "#fff",
       }}
     >
       <Typography variant="subtitle1" fontWeight={600} gutterBottom>
@@ -80,7 +114,7 @@ export default function SortByData({ onClose }: SortByDataProps)  {
         Columns
       </Typography>
 
-        {sortableColumns.map((column) => (
+      {sortableColumns.map((column) => (
         <FormControlLabel
           key={column.code}
           control={
@@ -90,7 +124,7 @@ export default function SortByData({ onClose }: SortByDataProps)  {
             />
           }
           label={column.title}
-          sx={{ display: 'block', ml: 1 }}
+          sx={{ display: "block", ml: 1 }}
         />
       ))}
       <Divider sx={{ my: 2 }} />
@@ -101,18 +135,14 @@ export default function SortByData({ onClose }: SortByDataProps)  {
 
       <RadioGroup
         value={sortType}
-        onChange={(e) => setSortType(e.target.value as 'desc' | 'unsort')}
+        onChange={(e) => setSortType(e.target.value as "desc" | "unsort")}
       >
         <FormControlLabel
           value="desc"
-          control={<Radio sx={{ color: '#d63384' }} />}
+          control={<Radio sx={{ color: "#d63384" }} />}
           label="Desc"
         />
-        <FormControlLabel
-          value="unsort"
-          control={<Radio />}
-          label="Unsort"
-        />
+        <FormControlLabel value="unsort" control={<Radio />} label="Unsort" />
       </RadioGroup>
 
       <Box mt={2} display="flex" justifyContent="space-between">
@@ -126,7 +156,11 @@ export default function SortByData({ onClose }: SortByDataProps)  {
         </Button>
         <Button
           variant="contained"
-          sx={{ bgcolor: '#d63384', color: '#fff', '&:hover': { bgcolor: '#c02576' } }}
+          sx={{
+            bgcolor: "#d63384",
+            color: "#fff",
+            "&:hover": { bgcolor: "#c02576" },
+          }}
           onClick={handleApply}
           size="small"
         >

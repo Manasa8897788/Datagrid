@@ -1,6 +1,5 @@
 import { GridMaster } from "../models/gridMaster";
 
-// ——— GridMaster configuration ———
 export const customerGrid: GridMaster = {
   id: 1,
   targetObject: "customer",
@@ -15,6 +14,7 @@ export const customerGrid: GridMaster = {
   dynamicLoad: false,
   recordsPerPage: 10,
   actionKey: "id",
+  sortActionKey: "code",
   gridPagination: {
     reqd: true,
     pageCount: 10,
