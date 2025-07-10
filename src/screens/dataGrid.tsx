@@ -43,6 +43,7 @@ import { GridColumns } from "./models/gridColums";
 import SortByData from "./sort/sort";
 import { exportToExcel } from "./excelExport";
 import { exportToPDF } from "./exportPdf";
+import FilterByData from "./Filter/filter";
 
 interface DataTableProps {
   data: any[];
@@ -81,6 +82,8 @@ const DataTable: React.FC<DataTableProps> = ({
   const [selectedRows, setSelectedRows] = useState<number[]>([]);
   const [view, setView] = useState("list");
   const [showSort, setShowSort] = useState(false);
+  const [showFilter, setShowFilter] = useState(false);
+
   const triggerRef = useRef<HTMLDivElement>(null);
 
   const handleToggle = () => {
@@ -331,24 +334,47 @@ const DataTable: React.FC<DataTableProps> = ({
             </ClickAwayListener>
           </Box>
 
-          <Box
-            sx={{
-              display: "flex",
-              alignItems: "center",
-              gap: 0.5,
-              cursor: "pointer",
-              px: 1,
-              py: 0.5,
-              border: "1px solid #e0e0e0",
-              borderRadius: 1,
-              height: 30,
-            }}
-          >
-            <FilterListIcon sx={{ fontSize: 20, color: "#666" }} />
-            <Typography variant="body2" color="text.secondary">
-              Filters
-            </Typography>
-          </Box>
+           <Box sx={{ position: 'relative', display: 'inline-block' }}>
+      <Box
+        onClick={() => setShowFilter((prev) => !prev)}
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          gap: 0.5,
+          cursor: "pointer",
+          px: 1,
+          py: 0.5,
+          border: "1px solid #e0e0e0",
+          borderRadius: 1,
+          height: 30,
+        }}
+      >
+        <FilterListIcon sx={{ fontSize: 20, color: "#666" }} />
+        <Typography variant="body2" color="text.secondary">
+          Filters
+        </Typography>
+      </Box>
+
+      {showFilter && (
+        <Box
+          sx={{
+            position: "absolute",
+            top: "100%",
+            left: 0,
+            mt: 1,
+            zIndex: 10,
+            boxShadow: 3,
+            backgroundColor: "background.paper",
+          }}
+        >
+          <FilterByData
+            onClose={() => setShowFilter(false)}
+            sortActionKey={gridMaster.sortActionKey}
+            handleFilter={handleFilter}
+          />
+        </Box>
+      )}
+    </Box>
         </Box>
 
         <Box sx={{ display: "flex", alignItems: "center", gap: 2, mr: 6 }}>
