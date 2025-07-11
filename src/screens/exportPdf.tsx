@@ -37,7 +37,7 @@ export const exportToPDF = (
       columns.map((col, index) => [
         index,
         {
-          cellWidth: 'wrap', // use wrap instead of auto
+          cellWidth: 'wrap', 
           minCellWidth: 20,
           maxCellWidth: 50
         }

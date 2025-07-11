@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Box, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, TextField, Typography, Avatar, IconButton, Checkbox, MenuItem, Select, FormControl, ToggleButton, ToggleButtonGroup, Pagination, ClickAwayListener, } from "@mui/material";
+import { Box, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, TextField, Typography, Avatar, IconButton, Checkbox, MenuItem, Select, FormControl, ToggleButton, ToggleButtonGroup, Pagination, ClickAwayListener, TableSortLabel, } from "@mui/material";
 import {
   Search as SearchIcon, FilterList as FilterListIcon, Visibility as VisibilityIcon, Edit as EditIcon, Delete as DeleteIcon, Download as DownloadIcon, Sort as SortIcon, ViewList as ViewListIcon, ViewModule as ViewModuleIcon,
   MoreVert as MoreVertIcon,
@@ -44,6 +44,26 @@ const DataTable: React.FC<DataTableProps> = ({
   const [exportFormat, setExportFormat] = useState("");
   const [pendingFormat, setPendingFormat] = useState("");
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const [order, setOrder] = useState<'asc' | 'desc'>('asc');
+  const [orderBy, setOrderBy] = useState<string>('');
+
+  const handleRequestSort = (property: string) => {
+    const isAsc = orderBy === property && order === 'asc';
+    const newOrder = isAsc ? 'desc' : 'asc';
+    setOrder(newOrder);
+    setOrderBy(property);
+
+    const sorted = [...filteredData].sort((a, b) => {
+      const aVal = a[property] ?? '';
+      const bVal = b[property] ?? '';
+      return newOrder === 'asc'
+        ? aVal.localeCompare(bVal)
+        : bVal.localeCompare(aVal);
+    });
+
+    setFilteredData(sorted);
+  };
+
 
   const [searchText, setSearchText] = useState("");
   const [filteredData, setFilteredData] = useState(data);
@@ -509,11 +529,32 @@ const DataTable: React.FC<DataTableProps> = ({
                     .filter(col => col.displayable && col.code !== 'ID')
                     .map(col => (
                       <TableCell key={col.code} sx={{ borderBottom: 'none', py: 3 }}>
-                        <Typography variant="body2" fontWeight={600} color="text.primary">
-                          {col.title}
-                        </Typography>
+                        {col.sortable ? (
+                          <TableSortLabel
+                            active={orderBy === col.code}
+                            direction={orderBy === col.code ? order : 'asc'}
+                            onClick={() => handleRequestSort(col.code)}
+                            hideSortIcon={false} 
+                            sx={{
+                              '& .MuiTableSortLabel-icon': {
+                                opacity: 1, 
+                              },
+                            }}
+                          >
+                            <Typography variant="body2" fontWeight={600} color="text.primary">
+                              {col.title}
+                            </Typography>
+                          </TableSortLabel>
+                        ) : (
+                          <Typography variant="body2" fontWeight={600} color="text.primary">
+                            {col.title}
+                          </Typography>
+                        )}
                       </TableCell>
                     ))}
+
+
+
 
                   {gridMaster.actionReqd && (
                     <TableCell align="center">
