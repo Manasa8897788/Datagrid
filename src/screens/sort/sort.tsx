@@ -1,5 +1,3 @@
-"use client";
-
 import React, { useEffect, useRef, useState } from "react";
 import {
   Box,
@@ -28,7 +26,7 @@ export default function SortByData({
 }: SortByDataProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const sortableColumns = customerGrid.gridColumns.filter(
-    (col) => col.sortable
+    (col) => col.sortable && col.displayable
   );
 
   const [selectedColumns, setSelectedColumns] = useState<

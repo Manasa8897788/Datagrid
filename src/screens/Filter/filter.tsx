@@ -28,7 +28,7 @@ export default function FilterByData({
   const containerRef = useRef<HTMLDivElement>(null);
 
   const filterableColumns = customerGrid.gridColumns.filter(
-    (col) => col.filterable
+    (col) => col.filterable && col.displayable
   );
 
   const [filterValues, setFilterValues] = useState<Record<string, string>>({});

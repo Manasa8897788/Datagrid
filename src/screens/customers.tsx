@@ -8,8 +8,8 @@ import { Customer } from "./models/customer";
 const Customers: React.FC = () => {
   const [customData, setCustomData] = useState<Customer[]>([]);
 
-  const handleDelete = () => {
-    console.log("handle Delete");
+  const handleDelete = (val: any) => {
+    console.log("handle Delete", val);
   };
 
   const handleDeleteCell = (value: any) => {

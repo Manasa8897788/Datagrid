@@ -1,7 +1,38 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Box, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, TextField, Typography, Avatar, IconButton, Checkbox, MenuItem, Select, FormControl, ToggleButton, ToggleButtonGroup, Pagination, ClickAwayListener, TableSortLabel, } from "@mui/material";
 import {
-  Search as SearchIcon, FilterList as FilterListIcon, Visibility as VisibilityIcon, Edit as EditIcon, Delete as DeleteIcon, Download as DownloadIcon, Sort as SortIcon, ViewList as ViewListIcon, ViewModule as ViewModuleIcon,
+  Box,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper,
+  TextField,
+  Typography,
+  Avatar,
+  IconButton,
+  Checkbox,
+  MenuItem,
+  Select,
+  FormControl,
+  ToggleButton,
+  ToggleButtonGroup,
+  Pagination,
+  ClickAwayListener,
+  TableSortLabel,
+  Drawer,
+} from "@mui/material";
+import {
+  Search as SearchIcon,
+  FilterList as FilterListIcon,
+  Visibility as VisibilityIcon,
+  Edit as EditIcon,
+  Delete as DeleteIcon,
+  Download as DownloadIcon,
+  Sort as SortIcon,
+  ViewList as ViewListIcon,
+  ViewModule as ViewModuleIcon,
   MoreVert as MoreVertIcon,
   ArrowDownward as ArrowDownwardIcon,
   ArrowUpward as ArrowUpwardIcon,
@@ -13,12 +44,13 @@ import { exportToExcel } from "./excelExport";
 import { exportToPDF } from "./exportPdf";
 import FilterByData from "./Filter/filter";
 import CustomAlertDialog from "./utils/customAlert";
-import CancelIcon from '@mui/icons-material/Cancel';
+import CancelIcon from "@mui/icons-material/Cancel";
+import DynamicForm from "./dynamicForms";
 
 interface DataTableProps {
   data: any[];
   gridMaster: GridMaster;
-  handleDelete?: () => void;
+  handleDelete?: (val: any) => void;
   handleDeleteCell?: (key?: any) => void;
   handleView?: (key?: any) => void;
   handleEdit?: (key?: any) => void;
@@ -44,26 +76,27 @@ const DataTable: React.FC<DataTableProps> = ({
   const [exportFormat, setExportFormat] = useState("");
   const [pendingFormat, setPendingFormat] = useState("");
   const [confirmOpen, setConfirmOpen] = useState(false);
-  const [order, setOrder] = useState<'asc' | 'desc'>('asc');
-  const [orderBy, setOrderBy] = useState<string>('');
+  const [order, setOrder] = useState<"asc" | "desc">("asc");
+  const [orderBy, setOrderBy] = useState<string>("");
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [drawerData, setDrawerData] = useState<any>(null);
 
   const handleRequestSort = (property: string) => {
-    const isAsc = orderBy === property && order === 'asc';
-    const newOrder = isAsc ? 'desc' : 'asc';
+    const isAsc = orderBy === property && order === "asc";
+    const newOrder = isAsc ? "desc" : "asc";
     setOrder(newOrder);
     setOrderBy(property);
 
     const sorted = [...filteredData].sort((a, b) => {
-      const aVal = a[property] ?? '';
-      const bVal = b[property] ?? '';
-      return newOrder === 'asc'
+      const aVal = a[property] ?? "";
+      const bVal = b[property] ?? "";
+      return newOrder === "asc"
         ? aVal.localeCompare(bVal)
         : bVal.localeCompare(aVal);
     });
 
     setFilteredData(sorted);
   };
-
 
   const [searchText, setSearchText] = useState("");
   const [filteredData, setFilteredData] = useState(data);
@@ -103,8 +136,8 @@ const DataTable: React.FC<DataTableProps> = ({
   };
 
   const onHandleDelete = () => {
-    if (handleDelete) {
-      handleDelete();
+    if (handleDelete && selectedRows.length > 0) {
+      handleDelete(selectedRows);
     }
     console.log("delete clicked");
   };
@@ -121,9 +154,13 @@ const DataTable: React.FC<DataTableProps> = ({
       handleView(key);
     }
   };
-  const onHandleEdit = (key: any) => {
+  const onHandleEdit = (key: any, data: any) => {
     console.log("edit ", key);
     if (handleEdit) {
+      setDrawerOpen(true);
+      console.log("drawerData", data);
+      console.log("gridColumns", gridMaster.gridColumns);
+      setDrawerData(data);
       handleEdit(key);
     }
   };
@@ -140,14 +177,16 @@ const DataTable: React.FC<DataTableProps> = ({
 
   const handleSelectAll = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.checked) {
-      const newSelected = filteredData.map((row, index) => index);
+      const key: keyof (typeof filteredData)[0] = gridMaster.actionKey;
+
+      const newSelected = filteredData.map((row) => row[key]);
       setSelectedRows(newSelected);
     } else {
       setSelectedRows([]);
     }
   };
 
-  const handleSelectRow = (index: number) => {
+  const handleSelectRow = (index: any) => {
     const selectedIndex = selectedRows.indexOf(index);
     let newSelected: number[] = [];
 
@@ -163,8 +202,11 @@ const DataTable: React.FC<DataTableProps> = ({
         selectedRows.slice(selectedIndex + 1)
       );
     }
+
     setSelectedRows(newSelected);
   };
+
+  console.log("selectedRows", selectedRows);
 
   const handleChangeView = (
     event: React.MouseEvent<HTMLElement>,
@@ -235,8 +277,6 @@ const DataTable: React.FC<DataTableProps> = ({
     setPendingFormat("");
     setConfirmOpen(false);
   };
-
-
 
   return (
     <Box sx={{ p: 1 }}>
@@ -493,15 +533,22 @@ const DataTable: React.FC<DataTableProps> = ({
               </svg>
             </ToggleButton>
           </ToggleButtonGroup>
-
         </Box>
       </Box>
-      {view === 'list' && (
-        <Paper sx={{ boxShadow: 'none', width: '100%', mb: 3, overflow: 'hidden' }}>
+      {view === "list" && (
+        <Paper
+          sx={{ boxShadow: "none", width: "100%", mb: 3, overflow: "hidden" }}
+        >
           <TableContainer>
             <Table>
-              <TableHead sx={{ bgcolor: '#F8F9FD', borderBottom: 'none' }}>
-                <TableRow sx={{ py: '2 !important', whiteSpace: 'nowrap', border: 'none' }}>
+              <TableHead sx={{ bgcolor: "#F8F9FD", borderBottom: "none" }}>
+                <TableRow
+                  sx={{
+                    py: "2 !important",
+                    whiteSpace: "nowrap",
+                    border: "none",
+                  }}
+                >
                   <TableCell padding="checkbox">
                     <Checkbox
                       color="primary"
@@ -519,46 +566,62 @@ const DataTable: React.FC<DataTableProps> = ({
 
                   {gridMaster.indexReqd && (
                     <TableCell>
-                      <Typography variant="body2" fontWeight={600} color="text.primary">
+                      <Typography
+                        variant="body2"
+                        fontWeight={600}
+                        color="text.primary"
+                      >
                         S.No
                       </Typography>
                     </TableCell>
                   )}
 
                   {gridMaster.gridColumns
-                    .filter(col => col.displayable && col.code !== 'ID')
-                    .map(col => (
-                      <TableCell key={col.code} sx={{ borderBottom: 'none', py: 3 }}>
+                    .filter((col) => col.displayable && col.code !== "ID")
+                    .map((col) => (
+                      <TableCell
+                        key={col.code}
+                        sx={{ borderBottom: "none", py: 3 }}
+                      >
                         {col.sortable ? (
                           <TableSortLabel
                             active={orderBy === col.code}
-                            direction={orderBy === col.code ? order : 'asc'}
+                            direction={orderBy === col.code ? order : "asc"}
                             onClick={() => handleRequestSort(col.code)}
-                            hideSortIcon={false} 
+                            hideSortIcon={false}
                             sx={{
-                              '& .MuiTableSortLabel-icon': {
-                                opacity: 1, 
+                              "& .MuiTableSortLabel-icon": {
+                                opacity: 1,
                               },
                             }}
                           >
-                            <Typography variant="body2" fontWeight={600} color="text.primary">
+                            <Typography
+                              variant="body2"
+                              fontWeight={600}
+                              color="text.primary"
+                            >
                               {col.title}
                             </Typography>
                           </TableSortLabel>
                         ) : (
-                          <Typography variant="body2" fontWeight={600} color="text.primary">
+                          <Typography
+                            variant="body2"
+                            fontWeight={600}
+                            color="text.primary"
+                          >
                             {col.title}
                           </Typography>
                         )}
                       </TableCell>
                     ))}
 
-
-
-
                   {gridMaster.actionReqd && (
                     <TableCell align="center">
-                      <Typography variant="body2" fontWeight={600} color="text.primary">
+                      <Typography
+                        variant="body2"
+                        fontWeight={600}
+                        color="text.primary"
+                      >
                         Actions
                       </Typography>
                     </TableCell>
@@ -568,55 +631,69 @@ const DataTable: React.FC<DataTableProps> = ({
 
               <TableBody>
                 {paginatedData.map((row, index) => {
-                  const isSelected = selectedRows.includes(index);
+                  const key: keyof typeof row = gridMaster.actionKey;
+
+                  const isSelected = selectedRows.includes(row[key]);
                   const actualIndex = (page - 1) * rowsPerPage + index;
-                  const targetKey = Object.keys(row).filter(each => each === gridMaster.actionKey);
+
+                  const targetKey = Object.keys(row).filter((each) => {
+                    return each === gridMaster.actionKey ? each : null;
+                  });
 
                   return (
                     <TableRow
                       key={index}
                       hover
                       selected={isSelected}
-                      sx={{ cursor: 'pointer', '&:hover': { bgcolor: '#f5f5f5' } }}
+                      sx={{
+                        cursor: "pointer",
+                        "&:hover": { bgcolor: "#f5f5f5" },
+                      }}
                     >
                       <TableCell padding="checkbox">
                         <Checkbox
                           color="primary"
                           checked={isSelected}
-                          onChange={() => handleSelectRow(index)}
+                          onChange={() => handleSelectRow(row[key])}
                         />
                       </TableCell>
 
                       {gridMaster.indexReqd && (
                         <TableCell>
                           <Typography variant="body2" color="text.secondary">
-                            {String(actualIndex + 1).padStart(2, '0')}
+                            {String(actualIndex + 1).padStart(2, "0")}
                           </Typography>
                         </TableCell>
                       )}
 
                       {gridMaster.gridColumns
-                        .filter(col => col.displayable && col.code !== 'ID')
-                        .map(col => (
+                        .filter((col) => col.displayable && col.code !== "ID")
+                        .map((col) => (
                           <TableCell key={col.code}>
-                            {['name', 'fullName'].includes(col.code) ? (
+                            {["name", "fullName"].includes(col.code) ? (
                               <Box display="flex" alignItems="center" gap={1}>
                                 <Avatar
                                   sx={{
                                     width: 32,
                                     height: 32,
                                     bgcolor: getRandomColor(),
-                                    fontSize: '14px',
+                                    fontSize: "14px",
                                   }}
                                 >
-                                  {generateInitials(row[col.code] || 'N/A')}
+                                  {generateInitials(row[col.code] || "N/A")}
                                 </Avatar>
-                                <Typography variant="body2" color="text.primary">
+                                <Typography
+                                  variant="body2"
+                                  color="text.primary"
+                                >
                                   {row[col.code]}
                                 </Typography>
                               </Box>
                             ) : (
-                              <Typography variant="body2" color="text.secondary">
+                              <Typography
+                                variant="body2"
+                                color="text.secondary"
+                              >
                                 {row[col.code]}
                               </Typography>
                             )}
@@ -660,7 +737,7 @@ const DataTable: React.FC<DataTableProps> = ({
                               onClick={() => {
                                 if (targetKey[0]) {
                                   const key: keyof typeof row = targetKey[0];
-                                  onHandleEdit(row[key]);
+                                  onHandleEdit(row[key], row);
                                 }
                               }}
                               size="small"
@@ -716,13 +793,19 @@ const DataTable: React.FC<DataTableProps> = ({
                     <TableCell
                       colSpan={
                         (gridMaster.indexReqd ? 1 : 0) +
-                        gridMaster.gridColumns.filter(col => col.displayable && col.code !== 'ID').length +
+                        gridMaster.gridColumns.filter(
+                          (col) => col.displayable && col.code !== "ID"
+                        ).length +
                         (gridMaster.actionReqd ? 1 : 0) +
                         1
                       }
                       align="center"
                     >
-                      <Typography variant="body2" color="text.secondary" sx={{ py: 3 }}>
+                      <Typography
+                        variant="body2"
+                        color="text.secondary"
+                        sx={{ py: 3 }}
+                      >
                         No records found
                       </Typography>
                     </TableCell>
@@ -734,37 +817,49 @@ const DataTable: React.FC<DataTableProps> = ({
         </Paper>
       )}
 
-      {view === 'grid' && (
+      {view === "grid" && (
         <div className="container-fluid">
           <div className="row gx-4 gy-4">
             {paginatedData.map((row, index) => {
               const isSelected = selectedRows.includes(index);
               const actualIndex = (page - 1) * rowsPerPage + index;
-              const targetKey = Object.keys(row).filter(each => each === gridMaster.actionKey);
+              const targetKey = Object.keys(row).filter(
+                (each) => each === gridMaster.actionKey
+              );
 
               return (
                 <div key={index} className="col-12 col-sm-6 col-md-4 col-lg-3">
-                  <div className="card shadow-sm border-1 h-100" style={{ borderRadius: '12px' }}>
+                  <div
+                    className="card shadow-sm border-1 h-100"
+                    style={{ borderRadius: "12px" }}
+                  >
                     <div className="card-body p-4 d-flex flex-column">
                       {/* Avatar + Title */}
                       {gridMaster.gridColumns
-                        .filter(col => col.displayable && ['name', 'fullName'].includes(col.code))
-                        .map(col => (
+                        .filter(
+                          (col) =>
+                            col.displayable &&
+                            ["name", "fullName"].includes(col.code)
+                        )
+                        .map((col) => (
                           <div key={col.code} className="text-center mb-3">
                             <div
                               className="rounded-circle text-white d-flex align-items-center justify-content-center mx-auto mb-2"
                               style={{
                                 width: 50,
                                 height: 50,
-                                backgroundColor: '#9c27b0',
-                                fontWeight: 'bold',
-                                fontSize: '16px'
+                                backgroundColor: "#9c27b0",
+                                fontWeight: "bold",
+                                fontSize: "16px",
                               }}
                             >
-                              {generateInitials(row[col.code] || 'N/A')}
+                              {generateInitials(row[col.code] || "N/A")}
                             </div>
-                            <h6 className="fw-bold mb-0" style={{ fontSize: '16px' }}>
-                              {row[col.code] || '-'}
+                            <h6
+                              className="fw-bold mb-0"
+                              style={{ fontSize: "16px" }}
+                            >
+                              {row[col.code] || "-"}
                             </h6>
                             <small className="text-muted">{col.title}</small>
                           </div>
@@ -773,18 +868,21 @@ const DataTable: React.FC<DataTableProps> = ({
                       {/* Show only 4 other fields */}
                       {gridMaster.gridColumns
                         .filter(
-                          col =>
+                          (col) =>
                             col.displayable &&
-                            !['ID', 'id', 'name', 'fullName'].includes(col.code)
+                            !["ID", "id", "name", "fullName"].includes(col.code)
                         )
                         .slice(0, 4)
-                        .map(col => (
+                        .map((col) => (
                           <div key={col.code} className="mb-3">
-                            <small className="text-muted d-block mb-1" style={{ fontSize: '12px' }}>
+                            <small
+                              className="text-muted d-block mb-1"
+                              style={{ fontSize: "12px" }}
+                            >
                               {col.title}
                             </small>
-                            <div style={{ fontSize: '14px', color: '#333' }}>
-                              {row[col.code] || '-'}
+                            <div style={{ fontSize: "14px", color: "#333" }}>
+                              {row[col.code] || "-"}
                             </div>
                           </div>
                         ))}
@@ -796,11 +894,11 @@ const DataTable: React.FC<DataTableProps> = ({
                             <button
                               className="btn text-white fw-medium px-3 py-2"
                               style={{
-                                backgroundColor: '#9c27b0',
-                                borderRadius: '8px',
-                                fontSize: '14px',
-                                border: 'none',
-                                whiteSpace: 'nowrap'
+                                backgroundColor: "#9c27b0",
+                                borderRadius: "8px",
+                                fontSize: "14px",
+                                border: "none",
+                                whiteSpace: "nowrap",
                               }}
                               onClick={() => {
                                 if (targetKey[0]) {
@@ -819,8 +917,8 @@ const DataTable: React.FC<DataTableProps> = ({
                                 className="btn btn-sm p-2"
                                 onClick={() => {
                                   if (targetKey[0]) {
-                                    const key = targetKey[0];
-                                    onHandleEdit(row[key]);
+                                    const key: keyof typeof row = targetKey[0];
+                                    onHandleEdit(row[key], row);
                                   }
                                 }}
                                 title="Edit"
@@ -837,7 +935,6 @@ const DataTable: React.FC<DataTableProps> = ({
                                     fill="#141414"
                                   />
                                 </svg>
-
                               </button>
 
                               {/* Delete */}
@@ -863,7 +960,6 @@ const DataTable: React.FC<DataTableProps> = ({
                                     fill="#141414"
                                   />
                                 </svg>
-
                               </button>
                             </div>
                           </div>
@@ -878,15 +974,13 @@ const DataTable: React.FC<DataTableProps> = ({
         </div>
       )}
 
-
       {paginatedData.length === 0 && (
-        <Box sx={{ width: '100%', textAlign: 'center', py: 5 }}>
+        <Box sx={{ width: "100%", textAlign: "center", py: 5 }}>
           <Typography variant="body2" color="text.secondary">
             No records found
           </Typography>
         </Box>
       )}
-
 
       {/* Footer with pagination and controls */}
       <Box
@@ -929,7 +1023,7 @@ const DataTable: React.FC<DataTableProps> = ({
             dialogTitle="Confirm Download"
             dialogContentText={
               <>
-                Are you sure you want to download the data as{' '}
+                Are you sure you want to download the data as{" "}
                 <strong>{pendingFormat.toUpperCase()}</strong>?
               </>
             }
@@ -1016,6 +1110,18 @@ const DataTable: React.FC<DataTableProps> = ({
             </FormControl>
           </Box>
         </Box>
+        {drawerData && (
+          <Drawer
+            anchor="right"
+            open={drawerOpen}
+            onClose={() => setDrawerOpen(false)}
+            PaperProps={{
+              sx: { width: "450px" },
+            }}
+          >
+            <DynamicForm gridMaster={gridMaster} drawerData={drawerData} />
+          </Drawer>
+        )}
       </Box>
     </Box>
   );

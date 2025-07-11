@@ -13,7 +13,7 @@ export const customerGrid: GridMaster = {
   indexReqd: true,
   dynamicLoad: false,
   recordsPerPage: 10,
-  actionKey: "id",
+  actionKey: "firstName",
   sortActionKey: "code",
   gridPagination: {
     reqd: true,
@@ -31,6 +31,7 @@ export const customerGrid: GridMaster = {
       searchReqd: true,
       filterable: false,
       displayable: true,
+      formElementType: "text",
     },
     {
       id: 3,
@@ -40,7 +41,8 @@ export const customerGrid: GridMaster = {
       sortable: false,
       searchReqd: false,
       filterable: false,
-      displayable: true,
+      displayable: false,
+      formElementType: "text",
     },
     {
       id: 4,
@@ -51,6 +53,7 @@ export const customerGrid: GridMaster = {
       searchReqd: true,
       filterable: false,
       displayable: true,
+      formElementType: "text",
     },
     {
       id: 5,
@@ -61,6 +64,7 @@ export const customerGrid: GridMaster = {
       searchReqd: true,
       filterable: false,
       displayable: true,
+      formElementType: "text",
     },
     {
       id: 6,
@@ -71,7 +75,8 @@ export const customerGrid: GridMaster = {
       searchReqd: false,
       filterable: true,
       displayable: true,
-      enumValues: ["Male", "Female"],
+      enumValues: ["MALE", "FEMALE"],
+      formElementType: "select",
     },
     {
       id: 7,
@@ -82,6 +87,7 @@ export const customerGrid: GridMaster = {
       searchReqd: false,
       filterable: false,
       displayable: true,
+      formElementType: "date",
     },
     {
       id: 8,
@@ -91,7 +97,8 @@ export const customerGrid: GridMaster = {
       sortable: false,
       searchReqd: false,
       filterable: false,
-      displayable: true,
+      displayable: false,
+      formElementType: "text",
     },
     {
       id: 9,
@@ -102,6 +109,7 @@ export const customerGrid: GridMaster = {
       searchReqd: true,
       filterable: false,
       displayable: true,
+      formElementType: "phone",
     },
     {
       id: 10,
@@ -112,6 +120,7 @@ export const customerGrid: GridMaster = {
       searchReqd: true,
       filterable: false,
       displayable: true,
+      formElementType: "email",
     },
     {
       id: 11,
@@ -121,7 +130,8 @@ export const customerGrid: GridMaster = {
       sortable: true,
       searchReqd: false,
       filterable: false,
-      displayable: true,
+      displayable: false,
+      formElementType: "text",
     },
     {
       id: 12,
@@ -131,7 +141,9 @@ export const customerGrid: GridMaster = {
       sortable: false,
       searchReqd: false,
       filterable: false,
-      displayable: true,
+      displayable: false,
+      formElementType: "radio",
+      enumValues: ["Telugu", "English"],
     },
     {
       id: 13,
@@ -142,6 +154,7 @@ export const customerGrid: GridMaster = {
       searchReqd: false,
       filterable: false,
       displayable: true,
+      formElementType: "date",
     },
     {
       id: 14,
@@ -151,8 +164,9 @@ export const customerGrid: GridMaster = {
       sortable: true,
       searchReqd: false,
       filterable: true,
-      displayable: true,
+      displayable: false,
       enumValues: ["SUCCESS", "FAILED", "PENDING"],
+      formElementType: "radio",
     },
   ],
   gridActions: {

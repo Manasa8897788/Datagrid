@@ -7,5 +7,6 @@ export interface GridColumns {
   searchReqd: boolean;
   filterable: boolean;
   displayable: boolean;
+  formElementType: any;
   enumValues?: any[];
 }
