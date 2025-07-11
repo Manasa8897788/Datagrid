@@ -29,7 +29,7 @@ export const customerGrid: GridMaster = {
       title: "First Name",
       sortable: true,
       searchReqd: true,
-      filterable: true,
+      filterable: false,
       displayable: true,
     },
     {
@@ -49,7 +49,7 @@ export const customerGrid: GridMaster = {
       title: "Last Name",
       sortable: true,
       searchReqd: true,
-      filterable: true,
+      filterable: false,
       displayable: true,
     },
     {
@@ -59,7 +59,7 @@ export const customerGrid: GridMaster = {
       title: "Username",
       sortable: true,
       searchReqd: true,
-      filterable: true,
+      filterable: false,
       displayable: true,
     },
     {
@@ -71,6 +71,7 @@ export const customerGrid: GridMaster = {
       searchReqd: false,
       filterable: true,
       displayable: true,
+      enumValues: ["Male", "Female"],
     },
     {
       id: 7,
@@ -119,7 +120,7 @@ export const customerGrid: GridMaster = {
       title: "Referred By",
       sortable: true,
       searchReqd: false,
-      filterable: true,
+      filterable: false,
       displayable: true,
     },
     {
@@ -129,7 +130,7 @@ export const customerGrid: GridMaster = {
       title: "Preferred Lang.",
       sortable: false,
       searchReqd: false,
-      filterable: true,
+      filterable: false,
       displayable: true,
     },
     {

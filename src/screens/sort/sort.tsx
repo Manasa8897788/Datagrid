@@ -91,9 +91,9 @@ export default function SortByData({
   };
 
   const handleApply = () => {
-    console.log("Selected Columns:", selectedColumns);
-    console.log("sortActionKey", sortActionKey);
-    console.log("selectedEnum", selectedEnums);
+    // console.log("Selected Columns:", selectedColumns);
+    // console.log("sortActionKey", sortActionKey);
+    // console.log("selectedEnum", selectedEnums);
 
     if (sortActionKey) {
       const key: keyof (typeof selectedColumns)[0] = sortActionKey;
@@ -102,7 +102,7 @@ export default function SortByData({
         const value = {
           order: sortType,
           sortActionKeys: filteredKeys,
-          selectedEnums: selectedEnums,
+          // selectedEnums: selectedEnums,
         };
         handleSort(value);
       }
@@ -160,7 +160,7 @@ export default function SortByData({
               label={column.title}
               sx={{ display: "block", ml: 1 }}
             />
-            {column.enumValues && isChecked && (
+            {/* {column.enumValues && isChecked && (
               <RadioGroup
                 value={selectedEnums[column.code] || ""}
                 onChange={(e) => handleRadioChange(e, column.code)}
@@ -176,7 +176,7 @@ export default function SortByData({
                   />
                 ))}
               </RadioGroup>
-            )}
+            )} */}
           </React.Fragment>
         );
       })}

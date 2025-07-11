@@ -28,7 +28,7 @@ const Customers: React.FC = () => {
   };
 
   const handleFilter = (value: any) => {
-    console.log("handleEdit", value);
+    console.log("handleFilter", value);
   };
 
   useEffect(() => {
