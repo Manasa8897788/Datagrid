@@ -1,49 +1,14 @@
 import React, { useEffect, useRef, useState } from "react";
-import {
-  Box,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Paper,
-  TextField,
-  Typography,
-  Avatar,
-  IconButton,
-  Checkbox,
-  MenuItem,
-  Select,
-  FormControl,
-  InputLabel,
-  ToggleButton,
-  ToggleButtonGroup,
-  Pagination,
-  Chip,
-  Button,
-  ClickAwayListener,
-} from "@mui/material";
-import {
-  Search as SearchIcon,
-  FilterList as FilterListIcon,
-  Visibility as VisibilityIcon,
-  Edit as EditIcon,
-  Delete as DeleteIcon,
-  Download as DownloadIcon,
-  Sort as SortIcon,
-  ViewList as ViewListIcon,
-  ViewModule as ViewModuleIcon,
-  MoreVert as MoreVertIcon,
-  ArrowDownward as ArrowDownwardIcon,
-  ArrowUpward as ArrowUpwardIcon,
-} from "@mui/icons-material";
+import {Box,Table,TableBody,TableCell,TableContainer,TableHead,TableRow,Paper,TextField,Typography,Avatar,IconButton,Checkbox,MenuItem,Select,FormControl,ToggleButton,ToggleButtonGroup,Pagination,ClickAwayListener,} from "@mui/material";
+import {Search as SearchIcon,FilterList as FilterListIcon,Visibility as VisibilityIcon,Edit as EditIcon,Delete as DeleteIcon,Download as DownloadIcon,Sort as SortIcon,ViewList as ViewListIcon, ViewModule as ViewModuleIcon, MoreVert as MoreVertIcon,ArrowDownward as ArrowDownwardIcon,ArrowUpward as ArrowUpwardIcon,} from "@mui/icons-material";
 import { GridMaster } from "./models/gridMaster";
 import { GridColumns } from "./models/gridColums";
 import SortByData from "./sort/sort";
 import { exportToExcel } from "./excelExport";
 import { exportToPDF } from "./exportPdf";
 import FilterByData from "./Filter/filter";
+import CustomAlertDialog from "./utils/customAlert";
+import CancelIcon from '@mui/icons-material/Cancel';
 
 interface DataTableProps {
   data: any[];
@@ -72,7 +37,9 @@ const DataTable: React.FC<DataTableProps> = ({
 }) => {
   const searchableFields = getSearchableFields(gridMaster.gridColumns);
   const [exportFormat, setExportFormat] = useState("");
-
+  const [pendingFormat, setPendingFormat] = useState("");
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  
   const [searchText, setSearchText] = useState("");
   const [filteredData, setFilteredData] = useState(data);
   const [page, setPage] = useState(1);
@@ -210,26 +177,41 @@ const DataTable: React.FC<DataTableProps> = ({
     return colors[Math.floor(Math.random() * colors.length)];
   };
 
-  const handleExportFormatChange = (event: any) => {
+const handleExportFormatChange = (event: any) => {
     const format = event.target.value;
-    setExportFormat(format); // <-- sets selected format for display
+    setPendingFormat(format);
+    setConfirmOpen(true); // show confirmation dialog
+  };
+
+  const handleConfirmDownload = () => {
+    setExportFormat(pendingFormat);
+    setConfirmOpen(false); // close dialog
 
     const exportableColumns = gridMaster.gridColumns.filter(
       (col) => col.displayable && col.code !== "ID"
     );
 
-    if (format === "xlsx") {
+    if (pendingFormat === "xlsx") {
       exportToExcel(filteredData, exportableColumns, "DataTableExport");
     }
 
-    if (format === "pdf") {
+    if (pendingFormat === "pdf") {
       exportToPDF(
         filteredData,
         exportableColumns.map((col) => ({ code: col.code, name: col.title })),
         "DataTableExport"
       );
     }
+
+    setPendingFormat(""); // clear pending format
   };
+
+  const handleCancelDownload = () => {
+    setPendingFormat("");
+    setConfirmOpen(false);
+  };
+
+
 
   return (
     <Box sx={{ p: 1 }}>
@@ -799,6 +781,23 @@ const DataTable: React.FC<DataTableProps> = ({
               <MenuItem value="pdf">PDF</MenuItem>
             </Select>
           </FormControl>
+
+                  <CustomAlertDialog
+          confirmOpen={confirmOpen}
+          handleCancel={handleCancelDownload} 
+          handleConfirm={handleConfirmDownload} 
+          dialogTitle="Confirm Download" 
+          dialogContentText={
+            <>
+              Are you sure you want to download the data as{' '}
+              <strong>{pendingFormat.toUpperCase()}</strong>?
+            </>
+          }
+          cancelButtonText=" Cancel" 
+          confirmButtonText=" Download" 
+          cancelButtonIcon={<CancelIcon />} 
+          confirmButtonIcon={<DownloadIcon />}
+        />
         </Box>
 
         <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
