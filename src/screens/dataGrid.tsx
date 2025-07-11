@@ -693,7 +693,6 @@ const DataTable: React.FC<DataTableProps> = ({
         </Paper>
       )}
 
-      {/* === Grid View === */}
       {view === 'grid' && (
         <div className="container-fluid">
           <div className="row gx-4 gy-4">
@@ -703,9 +702,10 @@ const DataTable: React.FC<DataTableProps> = ({
               const targetKey = Object.keys(row).filter(each => each === gridMaster.actionKey);
 
               return (
-                <div key={index} className="col-lg-4 col-xl-3">
-                  <div className="card shadow-sm border-0" style={{ borderRadius: '12px' }}>
-                    <div className="card-body p-4">
+                <div key={index} className="col-12 col-sm-6 col-md-4 col-lg-3">
+                  <div className="card shadow-sm border-1 h-100" style={{ borderRadius: '12px' }}>
+                    <div className="card-body p-4 d-flex flex-column">
+                      {/* Avatar + Title */}
                       {gridMaster.gridColumns
                         .filter(col => col.displayable && ['name', 'fullName'].includes(col.code))
                         .map(col => (
@@ -723,12 +723,13 @@ const DataTable: React.FC<DataTableProps> = ({
                               {generateInitials(row[col.code] || 'N/A')}
                             </div>
                             <h6 className="fw-bold mb-0" style={{ fontSize: '16px' }}>
-                              {row[col.code] || 'N/A'}
+                              {row[col.code] || '-'}
                             </h6>
                             <small className="text-muted">{col.title}</small>
                           </div>
                         ))}
 
+                      {/* Show only 4 other fields */}
                       {gridMaster.gridColumns
                         .filter(
                           col =>
@@ -742,16 +743,15 @@ const DataTable: React.FC<DataTableProps> = ({
                               {col.title}
                             </small>
                             <div style={{ fontSize: '14px', color: '#333' }}>
-                              {row[col.code] || 'N/A'}
+                              {row[col.code] || '-'}
                             </div>
                           </div>
                         ))}
 
-                      {/* Action Buttons */}
                       {gridMaster.actionReqd && (
-                        <div className="card-footer bg-transparent border-0 p-3 pt-0">
+                        <div className="mt-auto pt-3">
                           <div className="d-flex justify-content-between align-items-center">
-                            {/* Show More Button */}
+                            {/* Show More */}
                             <button
                               className="btn text-white fw-medium px-3 py-2"
                               style={{
@@ -759,7 +759,7 @@ const DataTable: React.FC<DataTableProps> = ({
                                 borderRadius: '8px',
                                 fontSize: '14px',
                                 border: 'none',
-                                whiteSpace: 'nowrap' // 👈 Prevents line break
+                                whiteSpace: 'nowrap'
                               }}
                               onClick={() => {
                                 if (targetKey[0]) {
@@ -771,12 +771,11 @@ const DataTable: React.FC<DataTableProps> = ({
                               Show More
                             </button>
 
-
-                            {/* Action Icons */}
-                            <div className="d-flex gap-2">
+                            {/* Icons */}
+                            <div className="d-flex gap-1">
+                              {/* Edit */}
                               <button
                                 className="btn btn-sm p-2"
-                                style={{ backgroundColor: '#f8f9fa', borderRadius: '6px' }}
                                 onClick={() => {
                                   if (targetKey[0]) {
                                     const key = targetKey[0];
@@ -800,9 +799,9 @@ const DataTable: React.FC<DataTableProps> = ({
 
                               </button>
 
+                              {/* Delete */}
                               <button
                                 className="btn btn-sm p-2"
-                                style={{ backgroundColor: '#f8f9fa', borderRadius: '6px' }}
                                 onClick={() => {
                                   if (targetKey[0]) {
                                     const key = targetKey[0];
@@ -837,6 +836,7 @@ const DataTable: React.FC<DataTableProps> = ({
           </div>
         </div>
       )}
+
 
       {paginatedData.length === 0 && (
         <Box sx={{ width: '100%', textAlign: 'center', py: 5 }}>

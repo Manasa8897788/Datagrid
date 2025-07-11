@@ -6,7 +6,7 @@ export const exportToPDF = (
   columns: { code: string; name: string }[],
   filename = "DataTableExport"
 ) => {
-  const doc = new jsPDF('landscape', 'mm', 'a4'); 
+  const doc = new jsPDF("landscape", "mm", "a4");
 
   const tableColumnHeaders = columns.map(col => col.name);
   const tableRows = data.map(row =>
@@ -22,31 +22,34 @@ export const exportToPDF = (
     head: [tableColumnHeaders],
     body: tableRows,
     styles: {
-      fontSize: 6,
+      fontSize: 5.5,
       cellPadding: 1,
-      overflow: 'linebreak', 
+      overflow: 'linebreak'
     },
     headStyles: {
       fillColor: [41, 128, 185],
       textColor: 255,
       halign: 'center',
-      fontSize: 7,
-      overflow: 'ellipsize', 
+      fontSize: 6.5,
+      overflow: 'ellipsize',
     },
     columnStyles: Object.fromEntries(
       columns.map((col, index) => [
         index,
         {
-          cellWidth: 'auto',
-          minCellWidth: 25,
-          maxCellWidth: 70,
+          cellWidth: 'wrap', // use wrap instead of auto
+          minCellWidth: 20,
+          maxCellWidth: 50
         }
       ])
     ),
     margin: { top: 20, bottom: 10, left: 5, right: 5 },
     startY: 30,
+    tableWidth: 'wrap', 
+    horizontalPageBreak: true, 
+    showHead: 'everyPage',
     didDrawPage: (data) => {
-      doc.setFontSize(12);
+      doc.setFontSize(11);
       doc.text("Exported Data Table", data.settings.margin.left, 15);
     },
     pageBreak: 'auto',
