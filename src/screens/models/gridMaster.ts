@@ -25,6 +25,9 @@ export interface GridMaster {
 interface EndPoint {
   uri: string;
   method: string;
+  params?: Record<string, any>;
+  headers?: Record<string, string>;
+  body?: Record<string, any>;
 }
 
 interface CallBacks {

@@ -14,13 +14,11 @@ import type { GridMaster } from "../models/gridMaster";
 type SortByDataProps = {
   onClose?: () => void;
   handleSort?: (key: any) => void;
-  sortActionKey: any;
   customerGrid: GridMaster;
 };
 
 export default function SortByData({
   onClose,
-  sortActionKey,
   handleSort,
   customerGrid,
 }: SortByDataProps) {
@@ -35,18 +33,8 @@ export default function SortByData({
   const [selectedEnums, setSelectedEnums] = useState<Record<string, string>>(
     {}
   );
-  const [sortType, setSortType] = useState<"desc" | "unsort">("desc");
+const [sortType, setSortType] = useState<"asc" | "desc" | "unsort">("asc");
 
-  const handleRadioChange = (
-    event: React.ChangeEvent<HTMLInputElement>,
-    columnCode: string
-  ) => {
-    const value = event.target.value;
-    setSelectedEnums((prev) => ({
-      ...prev,
-      [columnCode]: value,
-    }));
-  };
 
   const handleCheckboxChange = (
     column: (typeof customerGrid.gridColumns)[0]
@@ -56,7 +44,6 @@ export default function SortByData({
     );
 
     if (isCurrentlySelected) {
-      // Remove column and its enum value
       setSelectedColumns((prev) =>
         prev.filter((col) => col.code !== column.code)
       );
@@ -66,10 +53,37 @@ export default function SortByData({
         return newEnums;
       });
     } else {
-      // Add column
       setSelectedColumns((prev) => [...prev, column]);
     }
   };
+
+  const handleApply = () => {
+  const sortActionKey = customerGrid.sortActionKey;
+
+  if (sortType === "unsort") {
+    if (handleSort) {
+      handleSort({ order: "desc", sortActionKeys: [] });
+    }
+    onClose?.();
+    return;
+  }
+
+  if (sortActionKey) {
+    const key: keyof (typeof selectedColumns)[0] = sortActionKey;
+    const filteredKeys = selectedColumns.map((each) => each[key]);
+
+    if (handleSort) {
+      handleSort({
+        order: sortType,
+        sortActionKeys: filteredKeys,
+      });
+    }
+  }
+
+  onClose?.();
+};
+
+
 
   const handleReset = () => {
     setSelectedColumns([]);
@@ -88,27 +102,7 @@ export default function SortByData({
     }
   };
 
-  const handleApply = () => {
-    // console.log("Selected Columns:", selectedColumns);
-    // console.log("sortActionKey", sortActionKey);
-    // console.log("selectedEnum", selectedEnums);
-
-    if (sortActionKey) {
-      const key: keyof (typeof selectedColumns)[0] = sortActionKey;
-      const filteredKeys = selectedColumns.map((each) => each[key]);
-      if (handleSort) {
-        const value = {
-          order: sortType,
-          sortActionKeys: filteredKeys,
-          // selectedEnums: selectedEnums,
-        };
-        handleSort(value);
-      }
-    }
-    if (onClose) {
-      onClose();
-    }
-  };
+  
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -183,8 +177,8 @@ export default function SortByData({
         Sort Type
       </Typography>
       <RadioGroup
-        value={sortType}
-        onChange={(e) => setSortType(e.target.value as "desc" | "unsort")}
+       value={sortType}
+  onChange={(e) => setSortType(e.target.value as "asc" | "desc")}
       >
         <FormControlLabel
           value="desc"

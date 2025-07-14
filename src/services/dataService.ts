@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { customerGrid } from '../screens/data/data';
 
 const API_BASE_URL = 'http://13.203.127.30:9999/aurave-api';
 
@@ -25,7 +26,21 @@ const dataService = {
       console.error('Error fetching paginated customers:', error);
       throw error;
     }
+  },
+
+
+  async getCustomerMasterListBySort(columns: string, direction: 'ASC' | 'DESC') {
+    try {
+      const response = await axios.get(`${API_BASE_URL}${customerGrid.gridActions.ep_sort.uri}`, {
+        params: { columns, direction }
+      });
+      return response.data.content;
+    } catch (error) {
+      console.error("Error fetching Customer Master list by sort:", error);
+      throw error;
+    }
   }
+
 };
 
 export default dataService;

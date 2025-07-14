@@ -24,10 +24,27 @@ const Customers: React.FC = () => {
   const handleEdit = (value: any) => {
     console.log("handleEdit", value);
   };
-  const handleSort = (value: any) => {
-    console.log("handleSort ->", value);
-  };
+  const handleSort = async (value: any) => {
+  console.log("handleSort ->", value);
+  try {
+    const { sortActionKeys, order } = value;
 
+    if (sortActionKeys && sortActionKeys.length > 0) {
+      const direction = order.toUpperCase(); 
+      const columns = sortActionKeys.join(","); 
+
+      const sortedData = await dataService.getCustomerMasterListBySort(columns, direction);
+      setCustomData(sortedData);
+    } else {
+      const response = await dataService.getCustomerMasterList();
+      if (response.content && Array.isArray(response.content)) {
+        setCustomData(response.content);
+      }
+    }
+  } catch (error) {
+    console.error("Error in handleSort:", error);
+  }
+};
   const handlePagination = async (offset: number, pageSize: number) => {
     try {
       const response = await dataService.getCustomersPaginated(

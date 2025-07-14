@@ -61,6 +61,7 @@ const DataTable: React.FC<DataTableProps> = ({
   data,
   gridMaster,
   children,
+  
 }) => {
   const gridMasterObj = gridMaster || children;
   const { callBacks } = gridMaster || children;
@@ -412,10 +413,10 @@ const DataTable: React.FC<DataTableProps> = ({
                     }}
                   >
                     <SortByData
-                      onClose={() => setShowSort(false)}
-                      sortActionKey={gridMasterObj.sortActionKey}
-                      handleSort={callBacks.onSort && callBacks.onSort}
+                      handleSort={callBacks.onSort}
                       customerGrid={gridMasterObj}
+                      onClose={() => setShowSort(false)}
+                      
                     />
                   </Box>
                 )}

@@ -250,6 +250,8 @@ export const customerGrid: GridMaster = {
     ep_update: { uri: "/customer/update", method: "PUT" },
     ep_delete: { uri: "/customer/delete", method: "DELETE" },
     ep_toggle: { uri: "/customer/status", method: "PUT" },
+    ep_sort:{uri:"/customer/master/get/by/sort", method:"GET", params:{}, headers:{}, body:{}},
+
   },
 };
 
