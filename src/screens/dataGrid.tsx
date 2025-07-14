@@ -56,6 +56,7 @@ interface DataTableProps {
   handleEdit?: (key?: any) => void;
   handleSort?: (key?: any) => void;
   handleFilter?: (key?: any) => void;
+  handlePagination?: (offset: number, pageSize: number) => void;
 }
 
 const getSearchableFields = (cols: GridColumns[]): string[] => {
@@ -71,6 +72,7 @@ const DataTable: React.FC<DataTableProps> = ({
   handleEdit,
   handleSort,
   handleFilter,
+  handlePagination,
 }) => {
   const searchableFields = getSearchableFields(gridMaster.gridColumns);
   const [exportFormat, setExportFormat] = useState("");
@@ -115,18 +117,23 @@ const DataTable: React.FC<DataTableProps> = ({
     setShowSort((prev) => !prev);
   };
 
-  useEffect(() => {
-    const lowerText = searchText.toLowerCase();
-    const filtered = data.filter((row) =>
-      searchableFields.some((field) =>
-        String(row[field] ?? "")
-          .toLowerCase()
-          .includes(lowerText)
-      )
-    );
-    setFilteredData(filtered);
-    setPage(1);
-  }, [searchText, data]);
+useEffect(() => {
+  if (!Array.isArray(data)) {
+    setFilteredData([]); // or handle it differently
+    return;
+  }
+
+  const lowerText = searchText.toLowerCase();
+  const filtered = data.filter((row) =>
+    searchableFields.some((field) =>
+      String(row[field] ?? "")
+        .toLowerCase()
+        .includes(lowerText)
+    )
+  );
+  setFilteredData(filtered);
+  setPage(1);
+}, [searchText, data]);
 
   const handleChangePage = (
     event: React.ChangeEvent<unknown>,
@@ -140,6 +147,29 @@ const DataTable: React.FC<DataTableProps> = ({
       handleDelete(selectedRows);
     }
     console.log("delete clicked");
+  };
+  const handlePaginationChange = (
+    event: React.ChangeEvent<unknown>,
+    newPage: number
+  ) => {
+    const offset = (newPage - 1) * rowsPerPage;
+    setPage(newPage);
+    if (handlePagination) {
+      handlePagination(offset, rowsPerPage);
+    }
+  };
+
+  const handleRowsPerPageChange = (
+    event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    const newRowsPerPage = parseInt(event.target.value, 10);
+    const offset = 0; 
+    setRowsPerPage(newRowsPerPage);
+    setPage(1);
+
+    if (handlePagination) {
+      handlePagination(offset, newRowsPerPage);
+    }
   };
   const ondeleteCell = (key: any) => {
     console.log("delete", key);
@@ -1056,7 +1086,7 @@ const DataTable: React.FC<DataTableProps> = ({
           <Pagination
             count={totalPages}
             page={page}
-            onChange={handleChangePage}
+            onChange={handlePaginationChange}
             variant="outlined"
             shape="rounded"
             color="primary"

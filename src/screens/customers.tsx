@@ -26,7 +26,17 @@ const Customers: React.FC = () => {
   const handleSort = (value: any) => {
     console.log("handleSort ->", value);
   };
+  const handlePagination = async (offset: number, pageSize: number) => {
+    try {
+      const response = await dataService.getCustomersPaginated(offset, pageSize);
+      console.log("Paginated response:", response);
+      setCustomData(response.records.content || []);
+      //  setTotalRecords(response.totalCount || 0);
+    } catch (error) {
+      console.error('Error fetching paginated customers:', error);
+    }
 
+  };
   const handleFilter = (value: any) => {
     console.log("handleFilter", value);
   };
@@ -67,6 +77,7 @@ const Customers: React.FC = () => {
         handleEdit={handleEdit}
         handleSort={handleSort}
         handleFilter={handleFilter}
+        handlePagination={handlePagination}
         data={customData}
         gridMaster={customerGrid}
       />

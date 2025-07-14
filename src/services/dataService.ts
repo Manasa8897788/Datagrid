@@ -6,10 +6,23 @@ const dataService = {
   async getCustomerMasterList() {
     try {
 
-      const response = await axios.get(`${API_BASE_URL}/customer/master/get`, );
+      const response = await axios.get(`${API_BASE_URL}/customer/master/get`,);
       return response.data;
     } catch (error) {
       console.error('Error fetching Customer Master list:', error);
+      throw error;
+    }
+  },
+
+  async getCustomersPaginated(offset: number, pageSize: number) {
+    try {
+      const response = await axios.get(`${API_BASE_URL}/customer/master/get/page`, {
+        params: { offset, pageSize }
+      });
+
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching paginated customers:', error);
       throw error;
     }
   }
