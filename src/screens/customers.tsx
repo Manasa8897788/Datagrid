@@ -45,19 +45,22 @@ const Customers: React.FC = () => {
     console.error("Error in handleSort:", error);
   }
 };
-  const handlePagination = async (offset: number, pageSize: number) => {
+    const handlePagination = async (offset: number, pageSize: number) => {
+    console.log("value :", offset, pageSize);
     try {
+      
       const response = await dataService.getCustomersPaginated(
         offset,
         pageSize
       );
       console.log("Paginated response:", response);
       setCustomData(response.records.content || []);
-      //  setTotalRecords(response.totalCount || 0);
+      //setTotalRecords(response.totalCount || 0);
     } catch (error) {
       console.error("Error fetching paginated customers:", error);
     }
   };
+  
   const handleFilter = (value: any) => {
     console.log("handleFilter", value);
   };
