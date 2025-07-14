@@ -51,14 +51,14 @@ const handleDownload = (key: any) => {
 
 const handlePagination = async (offset: number, pageSize: number) => {
   console.log("value :", offset, pageSize);
-  try {
-    const response = await dataService.getCustomersPaginated(offset, pageSize);
-    console.log("Paginated response:", response);
-    // setCustomData(response.records.content || []);
-    //  setTotalRecords(response.totalCount || 0);
-  } catch (error) {
-    console.error("Error fetching paginated customers:", error);
-  }
+  // try {
+  //   const response = await dataService.getCustomersPaginated(offset, pageSize);
+  //   console.log("Paginated response:", response);
+  //   // setCustomData(response.records.content || []);
+  //   //  setTotalRecords(response.totalCount || 0);
+  // } catch (error) {
+  //   console.error("Error fetching paginated customers:", error);
+  // }
 };
 
 export const customerGrid: GridMaster = {
@@ -250,8 +250,6 @@ export const customerGrid: GridMaster = {
     ep_update: { uri: "/customer/update", method: "PUT" },
     ep_delete: { uri: "/customer/delete", method: "DELETE" },
     ep_toggle: { uri: "/customer/status", method: "PUT" },
-    ep_sort:{uri:"/customer/master/get/by/sort", method:"GET", params:{}, headers:{}, body:{}},
-
   },
 };
 

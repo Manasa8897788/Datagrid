@@ -5,6 +5,7 @@ import dataService from "../services/dataService";
 import { customerGrid as customerGridDefault } from "../screens/data/data";
 import { Customer } from "./models/customer";
 import { GridMaster } from "./models/gridMaster";
+import { validateInput } from "./data/validateInput";
 
 const Customers: React.FC = () => {
   const [customData, setCustomData] = useState<Customer[]>([]);
@@ -25,30 +26,30 @@ const Customers: React.FC = () => {
     console.log("handleEdit", value);
   };
   const handleSort = async (value: any) => {
-  console.log("handleSort ->", value);
-  try {
-    const { sortActionKeys, order } = value;
+    console.log("handleSort ->", value);
+    try {
+      const { sortActionKeys, order } = value;
 
-    if (sortActionKeys && sortActionKeys.length > 0) {
-      const direction = order.toUpperCase(); 
-      const columns = sortActionKeys.join(","); 
+      if (sortActionKeys && sortActionKeys.length > 0) {
+        const direction = order.toUpperCase();
+        const columns = sortActionKeys.join(",");
 
-      const sortedData = await dataService.getCustomerMasterListBySort(columns, direction);
-      setCustomData(sortedData);
-    } else {
-      const response = await dataService.getCustomerMasterList();
-      if (response.content && Array.isArray(response.content)) {
-        setCustomData(response.content);
+        const sortedData = await dataService.getCustomerMasterListBySort(columns, direction);
+        setCustomData(sortedData);
+      } else {
+        const response = await dataService.getCustomerMasterList();
+        if (response.content && Array.isArray(response.content)) {
+          setCustomData(response.content);
+        }
       }
+    } catch (error) {
+      console.error("Error in handleSort:", error);
     }
-  } catch (error) {
-    console.error("Error in handleSort:", error);
-  }
-};
-    const handlePagination = async (offset: number, pageSize: number) => {
+  };
+  const handlePagination = async (offset: number, pageSize: number) => {
     console.log("value :", offset, pageSize);
     try {
-      
+
       const response = await dataService.getCustomersPaginated(
         offset,
         pageSize
@@ -60,19 +61,21 @@ const Customers: React.FC = () => {
       console.error("Error fetching paginated customers:", error);
     }
   };
-  
+
   const handleFilter = (value: any) => {
     console.log("handleFilter", value);
   };
 
-  const handleSelect = () => {};
-  const handleClearSort = () => {};
-  const handleClearFilter = () => {};
-  const handleColumnSort = () => {};
-  const handleDownload = () => {};
+  const handleSelect = () => { };
+  const handleClearSort = () => { };
+  const handleClearFilter = () => { };
+  const handleColumnSort = () => { };
+  const handleDownload = () => { };
 
   const [customerGrid, setCustomerGrid] = useState<GridMaster>({
+    ...validateInput,
     ...customerGridDefault,
+
     callBacks: {
       onSelect: handleSelect,
       onDelete: handleDelete,
