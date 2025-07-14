@@ -62,7 +62,6 @@ const DataTable: React.FC<DataTableProps> = ({
   data,
   gridMaster,
   children,
-  
 }) => {
   const gridMasterObj = gridMaster || children;
   const { callBacks } = gridMaster || children;
@@ -102,6 +101,8 @@ const DataTable: React.FC<DataTableProps> = ({
   const [view, setView] = useState("list");
   const [showSort, setShowSort] = useState(false);
   const [showFilter, setShowFilter] = useState(false);
+  const [selectedColumns, setSelectedColumns] = useState<any>([]);
+  // const [sortType, setSortType] = useState<"asc" | "desc" | "unsort">("asc");
 
   const triggerRef = useRef<HTMLDivElement>(null);
 
@@ -145,7 +146,7 @@ const DataTable: React.FC<DataTableProps> = ({
     event: React.ChangeEvent<unknown>,
     newPage: number
   ) => {
-    const offset = newPage - 1; 
+    const offset = newPage - 1;
     setPage(newPage);
     if (callBacks.onPagination) {
       callBacks.onPagination(offset, rowsPerPage);
@@ -161,7 +162,6 @@ const DataTable: React.FC<DataTableProps> = ({
     }
   };
 
-  
   const ondeleteCell = (key: any) => {
     console.log("delete", key);
     if (callBacks.onRowDelete) {
@@ -413,9 +413,10 @@ const DataTable: React.FC<DataTableProps> = ({
                   >
                     <SortByData
                       handleSort={callBacks.onSort}
+                      selectedColumns={selectedColumns}
+                      setSelectedColumns={setSelectedColumns}
                       customerGrid={gridMasterObj}
                       onClose={() => setShowSort(false)}
-                      
                     />
                   </Box>
                 )}
@@ -1124,7 +1125,11 @@ const DataTable: React.FC<DataTableProps> = ({
                 onChange={handleRowsPerPageChange}
                 sx={{ fontSize: "14px" }}
               >
-                {(gridMasterObj.gridPagination?.recordPerPage || [5, 10, 25, 50, 100]).map((size) => (
+                {(
+                  gridMasterObj.gridPagination?.recordPerPage || [
+                    5, 10, 25, 50, 100,
+                  ]
+                ).map((size) => (
                   <MenuItem key={size} value={size.toString()}>
                     {size}
                   </MenuItem>
@@ -1133,7 +1138,7 @@ const DataTable: React.FC<DataTableProps> = ({
             </FormControl>
           </Box>
         </Box>
-        
+
         {drawerData && (
           <Drawer
             anchor="right"

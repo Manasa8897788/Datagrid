@@ -10,42 +10,48 @@ import {
   Divider,
 } from "@mui/material";
 import type { GridMaster } from "../models/gridMaster";
+import { GridColumns } from "../models/gridColums";
 
 type SortByDataProps = {
   onClose?: () => void;
   handleSort?: (key: any) => void;
   customerGrid: GridMaster;
+  selectedColumns: any;
+  setSelectedColumns: (columns: any) => void;
 };
 
 export default function SortByData({
   onClose,
   handleSort,
   customerGrid,
+  selectedColumns,
+  setSelectedColumns,
 }: SortByDataProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const sortableColumns = customerGrid.gridColumns.filter(
     (col) => col.sortable && col.displayable
   );
 
-  const [selectedColumns, setSelectedColumns] = useState<
-    typeof customerGrid.gridColumns
-  >([]);
+  // const [selectedColumns, setSelectedColumns] = useState<
+  //   typeof customerGrid.gridColumns
+  // >([]);
   const [selectedEnums, setSelectedEnums] = useState<Record<string, string>>(
     {}
   );
-const [sortType, setSortType] = useState<"asc" | "desc" | "unsort">("asc");
+  const [sortType, setSortType] = useState<"asc" | "desc">("asc");
 
+  console.log(selectedColumns, selectedColumns);
 
   const handleCheckboxChange = (
     column: (typeof customerGrid.gridColumns)[0]
   ) => {
     const isCurrentlySelected = selectedColumns.some(
-      (col) => col.code === column.code
+      (col: any) => col.code === column.code
     );
 
     if (isCurrentlySelected) {
-      setSelectedColumns((prev) =>
-        prev.filter((col) => col.code !== column.code)
+      setSelectedColumns((prev: any) =>
+        prev.filter((col: any) => col.code !== column.code)
       );
       setSelectedEnums((prev) => {
         const newEnums = { ...prev };
@@ -53,37 +59,37 @@ const [sortType, setSortType] = useState<"asc" | "desc" | "unsort">("asc");
         return newEnums;
       });
     } else {
-      setSelectedColumns((prev) => [...prev, column]);
+      setSelectedColumns((prev: any) => [...prev, column]);
     }
   };
 
   const handleApply = () => {
-  const sortActionKey = customerGrid.sortActionKey;
+    const sortActionKey = customerGrid.sortActionKey;
 
-  if (sortType === "unsort") {
-    if (handleSort) {
-      handleSort({ order: "desc", sortActionKeys: [] });
+    if (sortType === "desc") {
+      const key: keyof (typeof selectedColumns)[0] = sortActionKey;
+      const filteredKeys = selectedColumns.map((each: any) => each[key]);
+      if (handleSort) {
+        handleSort({ order: "desc", sortActionKeys: filteredKeys });
+      }
+      onClose?.();
+      return;
     }
+
+    if (sortActionKey) {
+      const key: keyof (typeof selectedColumns)[0] = sortActionKey;
+      const filteredKeys = selectedColumns.map((each: any) => each[key]);
+
+      if (handleSort) {
+        handleSort({
+          order: sortType,
+          sortActionKeys: filteredKeys,
+        });
+      }
+    }
+
     onClose?.();
-    return;
-  }
-
-  if (sortActionKey) {
-    const key: keyof (typeof selectedColumns)[0] = sortActionKey;
-    const filteredKeys = selectedColumns.map((each) => each[key]);
-
-    if (handleSort) {
-      handleSort({
-        order: sortType,
-        sortActionKeys: filteredKeys,
-      });
-    }
-  }
-
-  onClose?.();
-};
-
-
+  };
 
   const handleReset = () => {
     setSelectedColumns([]);
@@ -101,8 +107,6 @@ const [sortType, setSortType] = useState<"asc" | "desc" | "unsort">("asc");
       onClose();
     }
   };
-
-  
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -138,7 +142,7 @@ const [sortType, setSortType] = useState<"asc" | "desc" | "unsort">("asc");
       </Typography>
       {sortableColumns.map((column) => {
         const isChecked = selectedColumns.some(
-          (col) => col.code === column.code
+          (col: any) => col.code === column.code
         );
         return (
           <React.Fragment key={column.code}>
@@ -177,15 +181,11 @@ const [sortType, setSortType] = useState<"asc" | "desc" | "unsort">("asc");
         Sort Type
       </Typography>
       <RadioGroup
-       value={sortType}
-  onChange={(e) => setSortType(e.target.value as "asc" | "desc")}
+        value={sortType}
+        onChange={(e) => setSortType(e.target.value as "asc" | "desc")}
       >
-        <FormControlLabel
-          value="desc"
-          control={<Radio sx={{ color: "#d63384" }} />}
-          label="Desc"
-        />
-        <FormControlLabel value="unsort" control={<Radio />} label="Unsort" />
+        <FormControlLabel value="desc" control={<Radio />} label="Desc" />
+        <FormControlLabel value="asc" control={<Radio />} label="Asc" />
       </RadioGroup>
       <Box mt={2} display="flex" justifyContent="space-between">
         <Button
