@@ -49,14 +49,8 @@ import DynamicForm from "./dynamicForms";
 
 interface DataTableProps {
   data: any[];
-  gridMaster: GridMaster;
-  handleDelete?: (val: any) => void;
-  handleDeleteCell?: (key?: any) => void;
-  handleView?: (key?: any) => void;
-  handleEdit?: (key?: any) => void;
-  handleSort?: (key?: any) => void;
-  handleFilter?: (key?: any) => void;
-  handlePagination?: (offset: number, pageSize: number) => void;
+  gridMaster?: GridMaster;
+  children: GridMaster;
 }
 
 const getSearchableFields = (cols: GridColumns[]): string[] => {
@@ -66,15 +60,11 @@ const getSearchableFields = (cols: GridColumns[]): string[] => {
 const DataTable: React.FC<DataTableProps> = ({
   data,
   gridMaster,
-  handleDelete,
-  handleDeleteCell,
-  handleView,
-  handleEdit,
-  handleSort,
-  handleFilter,
-  handlePagination,
+  children,
 }) => {
-  const searchableFields = getSearchableFields(gridMaster.gridColumns);
+  const gridMasterObj = gridMaster || children;
+  const { callBacks } = gridMaster || children;
+  const searchableFields = getSearchableFields(gridMasterObj.gridColumns);
   const [exportFormat, setExportFormat] = useState("");
   const [pendingFormat, setPendingFormat] = useState("");
   const [confirmOpen, setConfirmOpen] = useState(false);
@@ -104,7 +94,7 @@ const DataTable: React.FC<DataTableProps> = ({
   const [filteredData, setFilteredData] = useState(data);
   const [page, setPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(
-    gridMaster.gridPagination?.recordPerPage?.[0] || 100
+    gridMasterObj.gridPagination?.recordPerPage?.[0] || 100
   );
   const [selectedRows, setSelectedRows] = useState<number[]>([]);
   const [view, setView] = useState("list");
@@ -117,23 +107,23 @@ const DataTable: React.FC<DataTableProps> = ({
     setShowSort((prev) => !prev);
   };
 
-useEffect(() => {
-  if (!Array.isArray(data)) {
-    setFilteredData([]); // or handle it differently
-    return;
-  }
+  useEffect(() => {
+    if (!Array.isArray(data)) {
+      setFilteredData([]); // or handle it differently
+      return;
+    }
 
-  const lowerText = searchText.toLowerCase();
-  const filtered = data.filter((row) =>
-    searchableFields.some((field) =>
-      String(row[field] ?? "")
-        .toLowerCase()
-        .includes(lowerText)
-    )
-  );
-  setFilteredData(filtered);
-  setPage(1);
-}, [searchText, data]);
+    const lowerText = searchText.toLowerCase();
+    const filtered = data.filter((row) =>
+      searchableFields.some((field) =>
+        String(row[field] ?? "")
+          .toLowerCase()
+          .includes(lowerText)
+      )
+    );
+    setFilteredData(filtered);
+    setPage(1);
+  }, [searchText, data]);
 
   const handleChangePage = (
     event: React.ChangeEvent<unknown>,
@@ -143,8 +133,9 @@ useEffect(() => {
   };
 
   const onHandleDelete = () => {
-    if (handleDelete && selectedRows.length > 0) {
-      handleDelete(selectedRows);
+    if (callBacks.onDelete && selectedRows.length > 0) {
+      callBacks.onDelete(selectedRows);
+      // handleDelete(selectedRows);
     }
     console.log("delete clicked");
   };
@@ -154,8 +145,8 @@ useEffect(() => {
   ) => {
     const offset = (newPage - 1) * rowsPerPage;
     setPage(newPage);
-    if (handlePagination) {
-      handlePagination(offset, rowsPerPage);
+    if (callBacks.onPagination) {
+      callBacks.onPagination(offset, rowsPerPage);
     }
   };
 
@@ -163,35 +154,35 @@ useEffect(() => {
     event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
     const newRowsPerPage = parseInt(event.target.value, 10);
-    const offset = 0; 
+    const offset = 0;
     setRowsPerPage(newRowsPerPage);
     setPage(1);
-
-    if (handlePagination) {
-      handlePagination(offset, newRowsPerPage);
+    if (callBacks.onPagination) {
+      callBacks.onPagination(offset, rowsPerPage);
     }
   };
+
   const ondeleteCell = (key: any) => {
     console.log("delete", key);
-    if (handleDeleteCell) {
-      handleDeleteCell(key);
+    if (callBacks.onRowDelete) {
+      callBacks.onRowDelete(key);
     }
   };
 
   const onHandleView = (key: any) => {
     console.log("view", key);
-    if (handleView) {
-      handleView(key);
+    if (callBacks.onRowView) {
+      callBacks.onRowView(key);
     }
   };
   const onHandleEdit = (key: any, data: any) => {
     console.log("edit ", key);
-    if (handleEdit) {
+    if (callBacks.onRowEdit) {
       setDrawerOpen(true);
       console.log("drawerData", data);
-      console.log("gridColumns", gridMaster.gridColumns);
+      console.log("gridColumns", gridMasterObj.gridColumns);
       setDrawerData(data);
-      handleEdit(key);
+      callBacks.onRowEdit(key);
     }
   };
 
@@ -207,7 +198,7 @@ useEffect(() => {
 
   const handleSelectAll = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.checked) {
-      const key: keyof (typeof filteredData)[0] = gridMaster.actionKey;
+      const key: keyof (typeof filteredData)[0] = gridMasterObj.actionKey;
 
       const newSelected = filteredData.map((row) => row[key]);
       setSelectedRows(newSelected);
@@ -284,7 +275,7 @@ useEffect(() => {
     setExportFormat(pendingFormat);
     setConfirmOpen(false); // close dialog
 
-    const exportableColumns = gridMaster.gridColumns.filter(
+    const exportableColumns = gridMasterObj.gridColumns.filter(
       (col) => col.displayable && col.code !== "ID"
     );
 
@@ -345,7 +336,7 @@ useEffect(() => {
           }}
         >
           {/* Search */}
-          {gridMaster.searchReqd && (
+          {gridMasterObj.searchReqd && (
             <TextField
               placeholder="Search"
               variant="outlined"
@@ -354,7 +345,9 @@ useEffect(() => {
               onChange={(e) => setSearchText(e.target.value)}
               InputProps={{
                 startAdornment: (
-                  <SearchIcon sx={{ color: gridMaster.primaryColour, mr: 1 }} />
+                  <SearchIcon
+                    sx={{ color: gridMasterObj.primaryColour, mr: 1 }}
+                  />
                 ),
                 sx: {
                   height: 40,
@@ -423,9 +416,9 @@ useEffect(() => {
                   >
                     <SortByData
                       onClose={() => setShowSort(false)}
-                      sortActionKey={gridMaster.sortActionKey}
-                      handleSort={handleSort && handleSort}
-                      customerGrid={gridMaster}
+                      sortActionKey={gridMasterObj.sortActionKey}
+                      handleSort={callBacks.onSort && callBacks.onSort}
+                      customerGrid={gridMasterObj}
                     />
                   </Box>
                 )}
@@ -480,9 +473,9 @@ useEffect(() => {
               >
                 <FilterByData
                   onClose={() => setShowFilter(false)}
-                  sortActionKey={gridMaster.sortActionKey}
-                  handleFilter={handleFilter}
-                  customerGrid={gridMaster}
+                  sortActionKey={gridMasterObj.sortActionKey}
+                  handleFilter={callBacks.onFilter}
+                  customerGrid={gridMasterObj}
                 />
               </Box>
             )}
@@ -490,30 +483,32 @@ useEffect(() => {
         </Box>
 
         <Box sx={{ display: "flex", alignItems: "center", gap: 2, mr: 6 }}>
-          <IconButton
-            onClick={onHandleDelete}
-            sx={{
-              width: 35,
-              height: 35,
-              border: "1px solid #C0C9D4",
-              borderRadius: 1,
-              m: 0,
-            }}
-          >
-            {/* <DeleteIcon /> */}
-            <svg
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
+          {selectedRows.length > 0 && (
+            <IconButton
+              onClick={onHandleDelete}
+              sx={{
+                width: 35,
+                height: 35,
+                border: "1px solid #C0C9D4",
+                borderRadius: 1,
+                m: 0,
+              }}
             >
-              <path
-                d="M7.6155 20C7.17117 20 6.79083 19.8418 6.4745 19.5255C6.15817 19.2092 6 18.8288 6 18.3845V5.99999H5.5C5.35833 5.99999 5.23958 5.95199 5.14375 5.85599C5.04792 5.75999 5 5.64108 5 5.49924C5 5.35741 5.04792 5.23874 5.14375 5.14324C5.23958 5.04774 5.35833 4.99999 5.5 4.99999H9C9 4.79366 9.07658 4.61383 9.22975 4.46049C9.38292 4.30733 9.56275 4.23074 9.76925 4.23074H14.2308C14.4372 4.23074 14.6171 4.30733 14.7703 4.46049C14.9234 4.61383 15 4.79366 15 4.99999H18.5C18.6417 4.99999 18.7604 5.04799 18.8562 5.14399C18.9521 5.23999 19 5.35891 19 5.50074C19 5.64258 18.9521 5.76124 18.8562 5.85674C18.7604 5.95224 18.6417 5.99999 18.5 5.99999H18V18.3845C18 18.8288 17.8418 19.2092 17.5255 19.5255C17.2092 19.8418 16.8288 20 16.3845 20H7.6155ZM17 5.99999H7V18.3845C7 18.564 7.05767 18.7115 7.173 18.827C7.2885 18.9423 7.436 19 7.6155 19H16.3845C16.564 19 16.7115 18.9423 16.827 18.827C16.9423 18.7115 17 18.564 17 18.3845V5.99999ZM10.3082 17C10.4502 17 10.569 16.9521 10.6645 16.8562C10.76 16.7604 10.8078 16.6417 10.8078 16.5V8.49999C10.8078 8.35833 10.7597 8.23958 10.6637 8.14374C10.5677 8.04791 10.4488 7.99999 10.307 7.99999C10.1652 7.99999 10.0465 8.04791 9.951 8.14374C9.8555 8.23958 9.80775 8.35833 9.80775 8.49999V16.5C9.80775 16.6417 9.85575 16.7604 9.95175 16.8562C10.0476 16.9521 10.1664 17 10.3082 17ZM13.693 17C13.8348 17 13.9535 16.9521 14.049 16.8562C14.1445 16.7604 14.1923 16.6417 14.1923 16.5V8.49999C14.1923 8.35833 14.1442 8.23958 14.0483 8.14374C13.9524 8.04791 13.8336 7.99999 13.6917 7.99999C13.5497 7.99999 13.431 8.04791 13.3355 8.14374C13.24 8.23958 13.1923 8.35833 13.1923 8.49999V16.5C13.1923 16.6417 13.2403 16.7604 13.3363 16.8562C13.4323 16.9521 13.5512 17 13.693 17Z"
-                fill="#101010"
-              />
-            </svg>
-          </IconButton>
+              {/* <DeleteIcon /> */}
+              <svg
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M7.6155 20C7.17117 20 6.79083 19.8418 6.4745 19.5255C6.15817 19.2092 6 18.8288 6 18.3845V5.99999H5.5C5.35833 5.99999 5.23958 5.95199 5.14375 5.85599C5.04792 5.75999 5 5.64108 5 5.49924C5 5.35741 5.04792 5.23874 5.14375 5.14324C5.23958 5.04774 5.35833 4.99999 5.5 4.99999H9C9 4.79366 9.07658 4.61383 9.22975 4.46049C9.38292 4.30733 9.56275 4.23074 9.76925 4.23074H14.2308C14.4372 4.23074 14.6171 4.30733 14.7703 4.46049C14.9234 4.61383 15 4.79366 15 4.99999H18.5C18.6417 4.99999 18.7604 5.04799 18.8562 5.14399C18.9521 5.23999 19 5.35891 19 5.50074C19 5.64258 18.9521 5.76124 18.8562 5.85674C18.7604 5.95224 18.6417 5.99999 18.5 5.99999H18V18.3845C18 18.8288 17.8418 19.2092 17.5255 19.5255C17.2092 19.8418 16.8288 20 16.3845 20H7.6155ZM17 5.99999H7V18.3845C7 18.564 7.05767 18.7115 7.173 18.827C7.2885 18.9423 7.436 19 7.6155 19H16.3845C16.564 19 16.7115 18.9423 16.827 18.827C16.9423 18.7115 17 18.564 17 18.3845V5.99999ZM10.3082 17C10.4502 17 10.569 16.9521 10.6645 16.8562C10.76 16.7604 10.8078 16.6417 10.8078 16.5V8.49999C10.8078 8.35833 10.7597 8.23958 10.6637 8.14374C10.5677 8.04791 10.4488 7.99999 10.307 7.99999C10.1652 7.99999 10.0465 8.04791 9.951 8.14374C9.8555 8.23958 9.80775 8.35833 9.80775 8.49999V16.5C9.80775 16.6417 9.85575 16.7604 9.95175 16.8562C10.0476 16.9521 10.1664 17 10.3082 17ZM13.693 17C13.8348 17 13.9535 16.9521 14.049 16.8562C14.1445 16.7604 14.1923 16.6417 14.1923 16.5V8.49999C14.1923 8.35833 14.1442 8.23958 14.0483 8.14374C13.9524 8.04791 13.8336 7.99999 13.6917 7.99999C13.5497 7.99999 13.431 8.04791 13.3355 8.14374C13.24 8.23958 13.1923 8.35833 13.1923 8.49999V16.5C13.1923 16.6417 13.2403 16.7604 13.3363 16.8562C13.4323 16.9521 13.5512 17 13.693 17Z"
+                  fill="#101010"
+                />
+              </svg>
+            </IconButton>
+          )}
 
           <ToggleButtonGroup
             value={view}
@@ -594,7 +589,7 @@ useEffect(() => {
                     />
                   </TableCell>
 
-                  {gridMaster.indexReqd && (
+                  {gridMasterObj.indexReqd && (
                     <TableCell>
                       <Typography
                         variant="body2"
@@ -606,7 +601,7 @@ useEffect(() => {
                     </TableCell>
                   )}
 
-                  {gridMaster.gridColumns
+                  {gridMasterObj.gridColumns
                     .filter((col) => col.displayable && col.code !== "ID")
                     .map((col) => (
                       <TableCell
@@ -645,7 +640,7 @@ useEffect(() => {
                       </TableCell>
                     ))}
 
-                  {gridMaster.actionReqd && (
+                  {gridMasterObj.actionReqd && (
                     <TableCell align="center">
                       <Typography
                         variant="body2"
@@ -661,13 +656,13 @@ useEffect(() => {
 
               <TableBody>
                 {paginatedData.map((row, index) => {
-                  const key: keyof typeof row = gridMaster.actionKey;
+                  const key: keyof typeof row = gridMasterObj.actionKey;
 
                   const isSelected = selectedRows.includes(row[key]);
                   const actualIndex = (page - 1) * rowsPerPage + index;
 
                   const targetKey = Object.keys(row).filter((each) => {
-                    return each === gridMaster.actionKey ? each : null;
+                    return each === gridMasterObj.actionKey ? each : null;
                   });
 
                   return (
@@ -688,7 +683,7 @@ useEffect(() => {
                         />
                       </TableCell>
 
-                      {gridMaster.indexReqd && (
+                      {gridMasterObj.indexReqd && (
                         <TableCell>
                           <Typography variant="body2" color="text.secondary">
                             {String(actualIndex + 1).padStart(2, "0")}
@@ -696,7 +691,7 @@ useEffect(() => {
                         </TableCell>
                       )}
 
-                      {gridMaster.gridColumns
+                      {gridMasterObj.gridColumns
                         .filter((col) => col.displayable && col.code !== "ID")
                         .map((col) => (
                           <TableCell key={col.code}>
@@ -730,7 +725,7 @@ useEffect(() => {
                           </TableCell>
                         ))}
 
-                      {gridMaster.actionReqd && (
+                      {gridMasterObj.actionReqd && (
                         <TableCell align="center">
                           <Box
                             sx={{
@@ -822,11 +817,11 @@ useEffect(() => {
                   <TableRow>
                     <TableCell
                       colSpan={
-                        (gridMaster.indexReqd ? 1 : 0) +
-                        gridMaster.gridColumns.filter(
+                        (gridMasterObj.indexReqd ? 1 : 0) +
+                        gridMasterObj.gridColumns.filter(
                           (col) => col.displayable && col.code !== "ID"
                         ).length +
-                        (gridMaster.actionReqd ? 1 : 0) +
+                        (gridMasterObj.actionReqd ? 1 : 0) +
                         1
                       }
                       align="center"
@@ -854,7 +849,7 @@ useEffect(() => {
               const isSelected = selectedRows.includes(index);
               const actualIndex = (page - 1) * rowsPerPage + index;
               const targetKey = Object.keys(row).filter(
-                (each) => each === gridMaster.actionKey
+                (each) => each === gridMasterObj.actionKey
               );
 
               return (
@@ -865,7 +860,7 @@ useEffect(() => {
                   >
                     <div className="card-body p-4 d-flex flex-column">
                       {/* Avatar + Title */}
-                      {gridMaster.gridColumns
+                      {gridMasterObj.gridColumns
                         .filter(
                           (col) =>
                             col.displayable &&
@@ -896,7 +891,7 @@ useEffect(() => {
                         ))}
 
                       {/* Show only 4 other fields */}
-                      {gridMaster.gridColumns
+                      {gridMasterObj.gridColumns
                         .filter(
                           (col) =>
                             col.displayable &&
@@ -917,7 +912,7 @@ useEffect(() => {
                           </div>
                         ))}
 
-                      {gridMaster.actionReqd && (
+                      {gridMasterObj.actionReqd && (
                         <div className="mt-auto pt-3">
                           <div className="d-flex justify-content-between align-items-center">
                             {/* Show More */}
@@ -1026,6 +1021,11 @@ useEffect(() => {
         }}
       >
         <Box sx={{ display: "flex", gap: 2, alignItems: "center" }}>
+          {selectedRows.length > 0 && (
+            <Typography variant="body2" color="text.secondary">
+              Selected Rows {selectedRows.length}
+            </Typography>
+          )}
           <Typography variant="body2" color="text.secondary">
             Download by
           </Typography>
@@ -1128,7 +1128,7 @@ useEffect(() => {
                 sx={{ fontSize: "14px" }}
               >
                 {(
-                  gridMaster.gridPagination?.recordPerPage || [
+                  gridMasterObj.gridPagination?.recordPerPage || [
                     5, 10, 25, 50, 100,
                   ]
                 ).map((size) => (
@@ -1149,7 +1149,7 @@ useEffect(() => {
               sx: { width: "450px" },
             }}
           >
-            <DynamicForm gridMaster={gridMaster} drawerData={drawerData} />
+            <DynamicForm gridMaster={gridMasterObj} drawerData={drawerData} />
           </Drawer>
         )}
       </Box>

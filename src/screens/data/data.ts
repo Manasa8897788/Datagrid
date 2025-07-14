@@ -1,5 +1,53 @@
 import { GridMaster } from "../models/gridMaster";
 
+const handleSelect = (row: any) => {
+  console.log("Selected row:", row);
+};
+
+const handleDelete = (row: any) => {
+  console.log("Deleted row:", row);
+};
+
+const handleRowView = (key: any) => {
+  console.log("Viewing row with key:", key);
+};
+
+const handleRowEdit = (key: any) => {
+  console.log("Editing row with key:", key);
+};
+
+const handleRowDelete = (key: any) => {
+  console.log("Deleting row with key:", key);
+};
+
+const handleSort = (key: any) => {
+  console.log("Sorting by key:", key);
+};
+
+const handleClearSort = (key: any) => {
+  console.log("Clear sort for key:", key);
+};
+
+const handleFilter = (key: any) => {
+  console.log("Filtering by key:", key);
+};
+
+const handleClearFilter = (key: any) => {
+  console.log("Clear filter for key:", key);
+};
+
+const handleColumnSort = (key: any) => {
+  console.log("Column sort by key:", key);
+};
+
+const handleDownload = (key: any) => {
+  console.log("Download for key:", key);
+};
+
+const handlePagination = (key1: any, key2: any) => {
+  console.log("onPaginatoin", key1, key2);
+};
+
 export const customerGrid: GridMaster = {
   id: 1,
   targetObject: "customer",
@@ -169,6 +217,21 @@ export const customerGrid: GridMaster = {
       formElementType: "radio",
     },
   ],
+  callBacks: {
+    onSelect: handleSelect,
+    onDelete: handleDelete,
+    onRowView: handleRowView,
+    onRowEdit: handleRowEdit,
+    onRowDelete: handleRowDelete,
+    onSort: handleSort,
+    onClearSort: handleClearSort,
+    onFilter: handleFilter,
+    onClearFilter: handleClearFilter,
+    onColumnSort: handleColumnSort,
+    onDownload: handleDownload,
+    onPagination: handlePagination,
+  },
+
   gridActions: {
     ep_data: { uri: "/customer/get", method: "GET" },
     ep_update: { uri: "/customer/update", method: "PUT" },

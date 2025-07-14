@@ -9,4 +9,5 @@ export interface GridColumns {
   displayable: boolean;
   formElementType: any;
   enumValues?: any[];
+  readOnly?: boolean;
 }
