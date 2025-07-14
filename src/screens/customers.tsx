@@ -2,8 +2,9 @@ import React, { useEffect, useState } from "react";
 import { Box } from "@mui/material";
 import DataTable from "../screens/dataGrid";
 import dataService from "../services/dataService";
-import { customerGrid } from "../screens/data/data";
+import { customerGrid as customerGridDefault } from "../screens/data/data";
 import { Customer } from "./models/customer";
+import { GridMaster } from "./models/gridMaster";
 
 const Customers: React.FC = () => {
   const [customData, setCustomData] = useState<Customer[]>([]);
@@ -43,6 +44,30 @@ const Customers: React.FC = () => {
   const handleFilter = (value: any) => {
     console.log("handleFilter", value);
   };
+
+  const handleSelect = () => {};
+  const handleClearSort = () => {};
+  const handleClearFilter = () => {};
+  const handleColumnSort = () => {};
+  const handleDownload = () => {};
+
+  const [customerGrid, setCustomerGrid] = useState<GridMaster>({
+    ...customerGridDefault,
+    callBacks: {
+      onSelect: handleSelect,
+      onDelete: handleDelete,
+      onRowView: handleView,
+      onRowEdit: handleEdit,
+      onRowDelete: handleDeleteCell,
+      onSort: handleSort,
+      onClearSort: handleClearSort,
+      onFilter: handleFilter,
+      onClearFilter: handleClearFilter,
+      onColumnSort: handleColumnSort,
+      onDownload: handleDownload,
+      onPagination: handlePagination,
+    },
+  });
 
   useEffect(() => {
     const fetchData = async () => {
