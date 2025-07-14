@@ -1,3 +1,4 @@
+import dataService from "../../services/dataService";
 import { GridMaster } from "../models/gridMaster";
 
 const handleSelect = (row: any) => {
@@ -44,8 +45,20 @@ const handleDownload = (key: any) => {
   console.log("Download for key:", key);
 };
 
-const handlePagination = (key1: any, key2: any) => {
-  console.log("onPaginatoin", key1, key2);
+// const handlePagination = (key1: any, key2: any) => {
+//   console.log("onPaginatoin", key1, key2);
+// };
+
+const handlePagination = async (offset: number, pageSize: number) => {
+  console.log("value :", offset, pageSize);
+  try {
+    const response = await dataService.getCustomersPaginated(offset, pageSize);
+    console.log("Paginated response:", response);
+    // setCustomData(response.records.content || []);
+    //  setTotalRecords(response.totalCount || 0);
+  } catch (error) {
+    console.error("Error fetching paginated customers:", error);
+  }
 };
 
 export const customerGrid: GridMaster = {

@@ -226,9 +226,6 @@ const DataTable: React.FC<DataTableProps> = ({
 
     setSelectedRows(newSelected);
   };
-
-  console.log("selectedRows", selectedRows);
-
   const handleChangeView = (
     event: React.MouseEvent<HTMLElement>,
     nextView: string
@@ -322,7 +319,7 @@ const DataTable: React.FC<DataTableProps> = ({
             color="text.secondary"
             gutterBottom
           >
-            {gridMaster?.title}
+            {gridMasterObj?.title}
             {/* Data Grid Table Sample */}
           </Typography>
         </Box>
