@@ -31,12 +31,25 @@ const dataService = {
 
   async getCustomerMasterListBySort(columns: string, direction: 'ASC' | 'DESC') {
     try {
-      const response = await axios.get(`${API_BASE_URL}${customerGrid.gridActions.ep_sort.uri}`, {
+      const response = await axios.get(`${API_BASE_URL}/customer/master/get/by/sort`, {
         params: { columns, direction }
       });
       return response.data.content;
     } catch (error) {
       console.error("Error fetching Customer Master list by sort:", error);
+      throw error;
+    }
+  },
+
+  async getCustomersPaginatedAndSorted(offset: number, pageSize: number, sortColumn: string, sortDirection: 'ASC' | 'DESC') {
+    try {
+      const response = await axios.get(`${API_BASE_URL}/customer/master/get/page/sort`, {
+        params: { offset, pageSize, sortColumn, sortDirection }
+      });
+      console.log("Response from getCustomersPaginatedAndSorted:", response.data);
+      return response.data.content;
+    } catch (error) {
+      console.error('Error fetching paginated and sorted customers:', error);
       throw error;
     }
   }

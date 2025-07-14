@@ -9,6 +9,9 @@ import { validateInput } from "./data/validateInput";
 
 const Customers: React.FC = () => {
   const [customData, setCustomData] = useState<Customer[]>([]);
+  const [sortColumn, setSortColumn] = useState<string>("");
+const [sortDirection, setSortDirection] = useState<"ASC" | "DESC">("ASC");
+
 
   const handleDelete = (val: any) => {
     console.log("handle Delete", val);
@@ -46,6 +49,10 @@ const Customers: React.FC = () => {
       console.error("Error in handleSort:", error);
     }
   };
+
+
+   
+
   const handlePagination = async (offset: number, pageSize: number) => {
     console.log("value :", offset, pageSize);
     try {
