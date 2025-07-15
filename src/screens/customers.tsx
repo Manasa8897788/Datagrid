@@ -11,7 +11,8 @@ const Customers: React.FC = () => {
   const [customData, setCustomData] = useState<Customer[]>([]);
   const [sortColumn, setSortColumn] = useState<string>("");
 const [sortDirection, setSortDirection] = useState<"ASC" | "DESC">("ASC");
-
+const [offset, setOffset] = useState<number>(0);
+const [pageSize, setPageSize] = useState<number>(10);
 
   const handleDelete = (val: any) => {
     console.log("handle Delete", val);
@@ -28,46 +29,71 @@ const [sortDirection, setSortDirection] = useState<"ASC" | "DESC">("ASC");
   const handleEdit = (value: any) => {
     console.log("handleEdit", value);
   };
-  const handleSort = async (value: any) => {
-    console.log("handleSort ->", value);
-    try {
-      const { sortActionKeys, order } = value;
+const handleSort = async (value: any) => {
+  console.log("handleSort ->", value);
 
-      if (sortActionKeys && sortActionKeys.length > 0) {
-        const direction = order.toUpperCase();
-        const columns = sortActionKeys.join(",");
+  try {
+    const { sortActionKeys, order } = value;
 
-        const sortedData = await dataService.getCustomerMasterListBySort(columns, direction);
-        setCustomData(sortedData);
-      } else {
-        const response = await dataService.getCustomerMasterList();
-        if (response.content && Array.isArray(response.content)) {
-          setCustomData(response.content);
-        }
-      }
-    } catch (error) {
-      console.error("Error in handleSort:", error);
+    if (sortActionKeys && sortActionKeys.length > 0) {
+      const column = sortActionKeys[0]; // Assuming single column sort
+      const direction = order.toUpperCase() as "ASC" | "DESC";
+
+      setSortColumn(column);
+      setSortDirection(direction);
+
+      const response = await dataService.getCustomersPaginatedAndSorted(
+        offset,
+        pageSize,
+        column,
+        direction
+      );
+console.log("Response from getCustomersPaginatedAndSorted:", response);
+      setCustomData(response.records.content || []);
+    } else {
+      // If sort cleared
+      setSortColumn("");
+      setSortDirection("ASC");
+
+      const response = await dataService.getCustomersPaginated(offset, pageSize);
+      console.log("Response from getCustomersPaginated:", response);
+      setCustomData(response.records.content || []);
     }
-  };
-
+  } catch (error) {
+    console.error("Error in handleSort:", error);
+  }
+};
 
    
 
-  const handlePagination = async (offset: number, pageSize: number) => {
-    console.log("value :", offset, pageSize);
-    try {
+const handlePagination = async (newOffset: number, newPageSize: number) => {
+  setOffset(newOffset);
+  setPageSize(newPageSize);
 
-      const response = await dataService.getCustomersPaginated(
-        offset,
-        pageSize
+  try {
+    let response;
+    if (sortColumn) {
+      response = await dataService.getCustomersPaginatedAndSorted(
+        newOffset,
+        newPageSize,
+        sortColumn,
+        sortDirection
       );
-      console.log("Paginated response:", response);
-      setCustomData(response.records.content || []);
-      //setTotalRecords(response.totalCount || 0);
-    } catch (error) {
-      console.error("Error fetching paginated customers:", error);
+      
+      console.log("Response from getCustomersPaginatedAndSorted:", response);
+    } else {
+      response = await dataService.getCustomersPaginated(newOffset, newPageSize);
+      console.log("Response from getCustomersPaginated:", response);
     }
-  };
+
+    setCustomData(response.content.records || []);
+    // setCustomerGrid((prevGrid) => ({}));
+
+  } catch (error) {
+    console.error("Error in handlePagination:", error);
+  }
+};
+
 
   const handleFilter = (value: any) => {
     console.log("handleFilter", value);
