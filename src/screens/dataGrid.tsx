@@ -47,6 +47,7 @@ import FilterByData from "./Filter/filter";
 import CustomAlertDialog from "./utils/customAlert";
 import CancelIcon from "@mui/icons-material/Cancel";
 import DynamicForm from "./dynamicForms";
+import RowsPerPageSelector from "./RowsPerPageSelector";
 
 interface DataTableProps {
   data: any[];
@@ -1119,23 +1120,12 @@ const DataTable: React.FC<DataTableProps> = ({
             <Typography variant="body2" color="text.secondary">
               Rows per page
             </Typography>
-            <FormControl size="small" sx={{ minWidth: 80 }}>
-              <Select
-                value={rowsPerPage.toString()}
-                onChange={handleRowsPerPageChange}
-                sx={{ fontSize: "14px" }}
-              >
-                {(
-                  gridMasterObj.gridPagination?.recordPerPage || [
-                    5, 10, 25, 50, 100,
-                  ]
-                ).map((size) => (
-                  <MenuItem key={size} value={size.toString()}>
-                    {size}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
+            <RowsPerPageSelector
+  gridMaster={gridMasterObj}
+  currentRowsPerPage={rowsPerPage}
+  setRowsPerPage={(val) => setRowsPerPage(val)}
+/>
+
           </Box>
         </Box>
 
