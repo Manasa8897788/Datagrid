@@ -29,7 +29,7 @@ const dataService = {
   },
 
 
-  async getCustomerMasterListBySort(columns: string, direction: string) {
+  async getCustomerMasterListBySort(columns: string, direction: 'ASC' | 'DESC') {
     try {
       const response = await axios.get(`${API_BASE_URL}/customer/master/get/by/sort`, {
         params: { columns, direction }
@@ -41,15 +41,10 @@ const dataService = {
     }
   },
 
-  async getCustomersPaginatedAndSorted(offset: number, pageSize: number, sortColumn: string, sortDirection: string) {
+  async getCustomersPaginatedAndSorted(offset: number, pageSize: number, sortColumn: string, sortDirection: 'ASC' | 'DESC') {
     try {
       const response = await axios.get(`${API_BASE_URL}/customer/master/get/page/sort`, {
-        params: {
-          offset,
-          pageSize,
-          columns: sortColumn,  // <-- must be "columns"
-          direction: sortDirection
-        }
+        params: { offset, pageSize, sortColumn, sortDirection }
       });
       console.log("Response from getCustomersPaginatedAndSorted:", response.data);
       return response.data.content;
