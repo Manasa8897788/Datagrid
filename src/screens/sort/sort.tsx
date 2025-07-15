@@ -18,6 +18,8 @@ type SortByDataProps = {
   customerGrid: GridMaster;
   selectedColumns: any;
   setSelectedColumns: (columns: any) => void;
+  sortType: any;
+  setSortType: (val: any) => void;
 };
 
 export default function SortByData({
@@ -26,6 +28,8 @@ export default function SortByData({
   customerGrid,
   selectedColumns,
   setSelectedColumns,
+  setSortType,
+  sortType,
 }: SortByDataProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const sortableColumns = customerGrid.gridColumns.filter(
@@ -38,7 +42,6 @@ export default function SortByData({
   const [selectedEnums, setSelectedEnums] = useState<Record<string, string>>(
     {}
   );
-  const [sortType, setSortType] = useState<"asc" | "desc">("asc");
 
   console.log(selectedColumns, selectedColumns);
 

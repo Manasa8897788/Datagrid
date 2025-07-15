@@ -1,6 +1,6 @@
 import { DataType } from "./dataType";
 
-export interface SearchCriteria {
+export interface FilterCriteria {
   field: string;
   values: string[];
   type: DataType;

@@ -1,4 +1,5 @@
 import dataService from "../../services/dataService";
+import { DataType } from "../models/dataType";
 import { GridMaster } from "../models/gridMaster";
 
 const handleSelect = (row: any) => {
@@ -93,6 +94,7 @@ export const customerGrid: GridMaster = {
       filterable: false,
       displayable: true,
       formElementType: "text",
+      type: DataType.STRING,
     },
     {
       id: 3,
@@ -104,6 +106,7 @@ export const customerGrid: GridMaster = {
       filterable: false,
       displayable: false,
       formElementType: "text",
+      type: DataType.STRING,
     },
     {
       id: 4,
@@ -115,6 +118,7 @@ export const customerGrid: GridMaster = {
       filterable: false,
       displayable: true,
       formElementType: "text",
+      type: DataType.STRING,
     },
     {
       id: 5,
@@ -126,6 +130,7 @@ export const customerGrid: GridMaster = {
       filterable: false,
       displayable: true,
       formElementType: "text",
+      type: DataType.STRING,
     },
     {
       id: 6,
@@ -137,7 +142,8 @@ export const customerGrid: GridMaster = {
       filterable: true,
       displayable: true,
       enumValues: ["MALE", "FEMALE"],
-      formElementType: "select",
+      formElementType: "radio",
+      type: DataType.STRING,
     },
     {
       id: 7,
@@ -145,10 +151,11 @@ export const customerGrid: GridMaster = {
       code: "dob",
       title: "Date of Birth",
       sortable: false,
-      searchReqd: false,
-      filterable: false,
+      searchReqd: true,
+      filterable: true,
       displayable: true,
-      formElementType: "date",
+      formElementType: "range",
+      type: DataType.STRING,
     },
     {
       id: 8,
@@ -160,6 +167,7 @@ export const customerGrid: GridMaster = {
       filterable: false,
       displayable: false,
       formElementType: "text",
+      type: DataType.INTEGER,
     },
     {
       id: 9,
@@ -171,6 +179,7 @@ export const customerGrid: GridMaster = {
       filterable: false,
       displayable: true,
       formElementType: "phone",
+      type: DataType.STRING,
     },
     {
       id: 10,
@@ -182,6 +191,7 @@ export const customerGrid: GridMaster = {
       filterable: false,
       displayable: true,
       formElementType: "email",
+      type: DataType.STRING,
     },
     {
       id: 11,
@@ -193,6 +203,7 @@ export const customerGrid: GridMaster = {
       filterable: false,
       displayable: false,
       formElementType: "text",
+      type: DataType.LONG,
     },
     {
       id: 12,
@@ -200,11 +211,12 @@ export const customerGrid: GridMaster = {
       code: "prefLang",
       title: "Preferred Lang.",
       sortable: false,
-      searchReqd: false,
-      filterable: false,
-      displayable: false,
-      formElementType: "radio",
+      searchReqd: true,
+      filterable: true,
+      displayable: true,
+      formElementType: "checkbox",
       enumValues: ["Telugu", "English"],
+      type: DataType.STRING,
     },
     {
       id: 13,
@@ -216,6 +228,7 @@ export const customerGrid: GridMaster = {
       filterable: false,
       displayable: true,
       formElementType: "date",
+      type: DataType.DATA_AND_TIME,
     },
     {
       id: 14,
@@ -228,6 +241,7 @@ export const customerGrid: GridMaster = {
       displayable: false,
       enumValues: ["SUCCESS", "FAILED", "PENDING"],
       formElementType: "radio",
+      type: DataType.STRING,
     },
   ],
   callBacks: {

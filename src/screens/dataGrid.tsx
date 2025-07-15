@@ -74,6 +74,7 @@ const DataTable: React.FC<DataTableProps> = ({
   const [orderBy, setOrderBy] = useState<string>("");
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [drawerData, setDrawerData] = useState<any>(null);
+  const [sortType, setSortType] = useState<"asc" | "desc">("asc");
 
   const handleRequestSort = (property: string) => {
     const isAsc = orderBy === property && order === "asc";
@@ -417,6 +418,8 @@ const DataTable: React.FC<DataTableProps> = ({
                       selectedColumns={selectedColumns}
                       setSelectedColumns={setSelectedColumns}
                       customerGrid={gridMasterObj}
+                      sortType={sortType}
+                      setSortType={setSortType}
                       onClose={() => setShowSort(false)}
                     />
                   </Box>
@@ -1121,11 +1124,10 @@ const DataTable: React.FC<DataTableProps> = ({
               Rows per page
             </Typography>
             <RowsPerPageSelector
-  gridMaster={gridMasterObj}
-  currentRowsPerPage={rowsPerPage}
-  setRowsPerPage={(val) => setRowsPerPage(val)}
-/>
-
+              gridMaster={gridMasterObj}
+              currentRowsPerPage={rowsPerPage}
+              setRowsPerPage={(val) => setRowsPerPage(val)}
+            />
           </Box>
         </Box>
 

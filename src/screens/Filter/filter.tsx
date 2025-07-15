@@ -1,22 +1,27 @@
+"use client";
+
 import React, { useEffect, useRef, useState } from "react";
 import {
   Box,
   Typography,
-  TextField,
   Button,
   Divider,
   RadioGroup,
   FormControlLabel,
   Checkbox,
   Radio,
+  Stack,
+  TextField,
 } from "@mui/material";
-import { GridMaster } from "../models/gridMaster";
+import type { GridMaster } from "../models/gridMaster";
+import type { FilterCriteria } from "../models/searchCriteria";
+import type { RangeCriteria } from "../models/rangeCriteria";
 
 type SortByDataProps = {
   onClose?: () => void;
   handleFilter?: (key: any) => void;
   sortActionKey: any;
-  customerGrid: GridMaster;
+  customerGrid?: GridMaster;
 };
 
 export default function FilterByData({
@@ -27,87 +32,179 @@ export default function FilterByData({
 }: SortByDataProps) {
   const containerRef = useRef<HTMLDivElement>(null);
 
-  const filterableColumns = customerGrid.gridColumns.filter(
+  const gridColumns = customerGrid?.gridColumns ?? [];
+
+  const filterableColumns = gridColumns.filter(
     (col) => col.filterable && col.displayable
   );
 
-  const [filterValues, setFilterValues] = useState<Record<string, string>>({});
-
-  const handleInputChange = (code: string, value: string) => {
-    setFilterValues((prev) => ({ ...prev, [code]: value }));
-  };
-
-  const [selectedColumns, setSelectedColumns] = useState<
-    typeof customerGrid.gridColumns
-  >([]);
-  const [selectedEnums, setSelectedEnums] = useState<Record<string, string>>(
-    {}
-  );
+  // State to manage selected filter criteria
+  const [selectedEnums, setSelectedEnums] = useState<FilterCriteria[]>([]);
+  const [selectedRanges, setSelectedRanges] = useState<RangeCriteria[]>([]);
 
   const handleReset = () => {
-    setFilterValues({});
+    setSelectedEnums([]);
+    setSelectedRanges([]);
     if (onClose) onClose();
   };
 
-  // const handleApply = () => {
-  //   console.log("Filter Values:", filterValues);
-  //   console.log("Sort Type:", sortType);
-  //   if (onClose) onClose();
-  // };
-
   const handleApply = () => {
-    // console.log("Selected Columns:", selectedColumns);
-    // console.log("sortActionKey", sortActionKey);
-    // console.log("selectedEnum", selectedEnums);
+    console.log("Selected Enums:", selectedEnums);
+    console.log("Selected Ranges:", selectedRanges);
 
-    if (sortActionKey) {
-      const key: keyof (typeof selectedColumns)[0] = sortActionKey;
-      const filteredKeys = selectedColumns.map((each) => each[key]);
-      if (handleFilter) {
-        const value = {
-          sortActionKeys: filteredKeys,
-          selectedEnums: selectedEnums,
-        };
-        handleFilter(value);
-      }
+    if (sortActionKey && handleFilter) {
+      const value = {
+        sortActionKeys: [], // You can modify this based on your needs
+        selectedEnums: selectedEnums,
+        selectedRanges: selectedRanges,
+      };
+      handleFilter(value);
     }
     if (onClose) {
       onClose();
     }
   };
 
-  const handleCheckboxChange = (
-    column: (typeof customerGrid.gridColumns)[0]
-  ) => {
-    const isCurrentlySelected = selectedColumns.some(
-      (col) => col.code === column.code
-    );
-
-    if (isCurrentlySelected) {
-      // Remove column and its enum value
-      setSelectedColumns((prev) =>
-        prev.filter((col) => col.code !== column.code)
-      );
-      setSelectedEnums((prev) => {
-        const newEnums = { ...prev };
-        delete newEnums[column.code];
-        return newEnums;
-      });
-    } else {
-      // Add column
-      setSelectedColumns((prev) => [...prev, column]);
-    }
-  };
-
+  // Handle radio button changes
   const handleRadioChange = (
     event: React.ChangeEvent<HTMLInputElement>,
-    columnCode: string
+    columnCode: string,
+    columnTitle: string
   ) => {
     const value = event.target.value;
-    setSelectedEnums((prev) => ({
-      ...prev,
-      [columnCode]: value,
-    }));
+
+    setSelectedEnums((prev: any) => {
+      // Remove existing entry for this field if it exists
+      const filtered = prev.filter((item: any) => item.field !== columnTitle);
+
+      // Add new entry with single value (radio allows only one selection)
+      return [
+        ...filtered,
+        {
+          field: columnTitle,
+          values: [value],
+          fieldCode: columnCode,
+        },
+      ];
+    });
+  };
+
+  // Handle checkbox changes
+  const handleCheckboxChange = (
+    event: React.ChangeEvent<HTMLInputElement>,
+    item: string,
+    columnCode: string,
+    columnTitle: string
+  ) => {
+    const isChecked = event.target.checked;
+
+    setSelectedEnums((prev: any) => {
+      const existingIndex = prev.findIndex(
+        (criteria: any) => criteria.field === columnTitle
+      );
+
+      if (existingIndex >= 0) {
+        // Field already exists, update its values
+        const existingCriteria = prev[existingIndex];
+        let updatedValues;
+
+        if (isChecked) {
+          // Add value if not already present
+          updatedValues = existingCriteria.values.includes(item)
+            ? existingCriteria.values
+            : [...existingCriteria.values, item];
+        } else {
+          // Remove value
+          updatedValues = existingCriteria.values.filter(
+            (val: any) => val !== item
+          );
+        }
+
+        // If no values left, remove the entire criteria
+        if (updatedValues.length === 0) {
+          return prev.filter(
+            (_: any, index: number) => index !== existingIndex
+          );
+        }
+
+        // Update the criteria with new values
+        const updatedCriteria = [...prev];
+        updatedCriteria[existingIndex] = {
+          ...existingCriteria,
+          values: updatedValues,
+        };
+        return updatedCriteria;
+      } else {
+        // Field doesn't exist, create new entry if checked
+        if (isChecked) {
+          return [
+            ...prev,
+            {
+              field: columnTitle,
+              values: [item],
+              fieldCode: columnCode,
+            },
+          ];
+        }
+        return prev;
+      }
+    });
+  };
+
+  // Handle range input changes
+  const handleRangeChange = (
+    event: React.ChangeEvent<HTMLInputElement> | any,
+    columnCode: string,
+    columnTitle: string,
+    columnType: string,
+    rangeType: "from" | "to"
+  ) => {
+    const value = event.target.value;
+
+    setSelectedRanges((prev) => {
+      const existingIndex = prev.findIndex(
+        (criteria) => criteria.field === columnTitle
+      );
+
+      if (existingIndex >= 0) {
+        // Update existing range criteria
+        const updatedCriteria = [...prev];
+        updatedCriteria[existingIndex] = {
+          ...updatedCriteria[existingIndex],
+          [rangeType]: value,
+        };
+        return updatedCriteria;
+      } else {
+        const newCriteria: RangeCriteria = {
+          field: columnTitle,
+          from: rangeType === "from" ? value : "",
+          to: rangeType === "to" ? value : "",
+          type: columnType,
+        };
+        return [...prev, newCriteria];
+      }
+    });
+  };
+
+  // Helper function to get selected radio value for a column
+  const getSelectedRadioValue = (columnTitle: string): string => {
+    const criteria = selectedEnums.find((item) => item.field === columnTitle);
+    return criteria && criteria.values.length > 0 ? criteria.values[0] : "";
+  };
+
+  // Helper function to check if checkbox is selected
+  const isCheckboxSelected = (columnTitle: string, value: string): boolean => {
+    const criteria = selectedEnums.find((item) => item.field === columnTitle);
+    return criteria ? criteria.values.includes(value) : false;
+  };
+
+  // Helper function to get range values
+  const getRangeValue = (
+    columnTitle: string,
+    rangeType: "from" | "to"
+  ): string => {
+    const criteria = selectedRanges.find((item) => item.field === columnTitle);
+    return criteria ? criteria[rangeType] : "";
   };
 
   useEffect(() => {
@@ -119,11 +216,34 @@ export default function FilterByData({
         if (onClose) onClose();
       }
     };
+
     document.addEventListener("mousedown", handleClickOutside);
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [onClose]);
+
+  if (gridColumns.length === 0) {
+    return (
+      <Box
+        ref={containerRef}
+        sx={{
+          width: 260,
+          border: "1px solid #e0e0e0",
+          borderRadius: 2,
+          p: 2,
+          backgroundColor: "#fff",
+        }}
+      >
+        <Typography variant="subtitle1" fontWeight={600}>
+          No filterable data
+        </Typography>
+        <Button sx={{ mt: 2 }} variant="contained" onClick={onClose}>
+          Close
+        </Button>
+      </Box>
+    );
+  }
 
   return (
     <Box
@@ -134,85 +254,141 @@ export default function FilterByData({
         borderRadius: 2,
         p: 2,
         backgroundColor: "#fff",
+        maxHeight: "80vh",
+        overflowY: "auto",
       }}
     >
       <Typography variant="subtitle1" fontWeight={600} gutterBottom>
         Filter By
       </Typography>
-
       <Typography variant="body2" fontWeight={500} mb={1}>
         Filterable Fields
       </Typography>
+      <Divider />
 
       {filterableColumns.map((column) => {
-        const isChecked = selectedColumns.some(
-          (col) => col.code === column.code
-        );
         return (
-          // <TextField
-          //   key={column.code}
-          //   label={column.title}
-          //   variant="outlined"
-          //   size="small"
-          //   fullWidth
-          //   sx={{ mb: 1 }}
-          //   value={filterValues[column.code] || ""}
-          //   onChange={(e) => handleInputChange(column.code, e.target.value)}
-          // />
-
           <React.Fragment key={column.code}>
-            <FormControlLabel
-              control={
-                <Checkbox
-                  checked={isChecked}
-                  onChange={() => handleCheckboxChange(column)}
-                />
-              }
-              label={column.title}
-              sx={{ display: "block", ml: 1 }}
-            />
-            {column.enumValues && isChecked && (
-              <RadioGroup
-                value={selectedEnums[column.code] || ""}
-                onChange={(e) => handleRadioChange(e, column.code)}
-                row
-                sx={{ ml: 3 }}
-              >
-                {column.enumValues.map((val) => (
-                  <FormControlLabel
-                    key={val}
-                    value={val}
-                    control={<Radio />}
-                    label={val}
+            {column.enumValues && column.formElementType === "radio" && (
+              <>
+                <Typography variant="body2" fontWeight={500} mb={1} mt={2}>
+                  {column.title}
+                </Typography>
+                <RadioGroup
+                  value={getSelectedRadioValue(column.title)}
+                  onChange={(e) =>
+                    handleRadioChange(e, column.code, column.title)
+                  }
+                  sx={{ ml: 1 }}
+                >
+                  {column.enumValues.map((val) => (
+                    <FormControlLabel
+                      key={val}
+                      value={val}
+                      control={<Radio size="small" />}
+                      label={val}
+                      sx={{
+                        "& .MuiFormControlLabel-label": {
+                          fontSize: "0.875rem",
+                        },
+                      }}
+                    />
+                  ))}
+                </RadioGroup>
+              </>
+            )}
+
+            {column.enumValues && column.formElementType === "checkbox" && (
+              <>
+                <Typography variant="body2" fontWeight={500} mb={1} mt={2}>
+                  {column.title}
+                </Typography>
+                <Stack spacing={0.5} sx={{ ml: 1 }}>
+                  {column.enumValues.map((item) => (
+                    <FormControlLabel
+                      key={item}
+                      control={
+                        <Checkbox
+                          size="small"
+                          checked={isCheckboxSelected(column.title, item)}
+                          onChange={(e) =>
+                            handleCheckboxChange(
+                              e,
+                              item,
+                              column.code,
+                              column.title
+                            )
+                          }
+                        />
+                      }
+                      label={item}
+                      sx={{
+                        "& .MuiFormControlLabel-label": {
+                          fontSize: "0.875rem",
+                        },
+                      }}
+                    />
+                  ))}
+                </Stack>
+              </>
+            )}
+
+            {column.formElementType === "range" && (
+              <>
+                <Typography variant="body2" fontWeight={500} mb={1} mt={2}>
+                  {column.title}
+                </Typography>
+                <Box sx={{ display: "flex", gap: 1, flexDirection: "column" }}>
+                  <TextField
+                    label="From"
+                    variant="outlined"
+                    size="small"
+                    fullWidth
+                    value={getRangeValue(column.title, "from")}
+                    onChange={(e) =>
+                      handleRangeChange(
+                        e,
+                        column.code,
+                        column.title,
+                        column.type,
+                        "from"
+                      )
+                    }
+                    sx={{
+                      "& .MuiInputBase-root": {
+                        fontSize: "0.875rem",
+                      },
+                    }}
                   />
-                ))}
-              </RadioGroup>
+                  <TextField
+                    label="To"
+                    variant="outlined"
+                    size="small"
+                    fullWidth
+                    value={getRangeValue(column.title, "to")}
+                    onChange={(e) =>
+                      handleRangeChange(
+                        e,
+                        column.code,
+                        column.title,
+                        column.type,
+                        "to"
+                      )
+                    }
+                    sx={{
+                      "& .MuiInputBase-root": {
+                        fontSize: "0.875rem",
+                      },
+                    }}
+                  />
+                </Box>
+              </>
             )}
           </React.Fragment>
         );
       })}
 
       <Divider sx={{ my: 2 }} />
-
-      {/* <Typography variant="body2" fontWeight={500} mb={1}>
-        Sort Type
-      </Typography>
-
-      <RadioGroup
-        value={sortType}
-        onChange={(e) => setSortType(e.target.value as 'desc' | 'unsort')}
-      >
-        <FormControlLabel
-          value="desc"
-          control={<Radio sx={{ color: '#d63384' }} />}
-          label="Desc"
-        />
-        <FormControlLabel
-          value="unsort"
-          control={<Radio />}
-          label="Unsort"
-        />
-      </RadioGroup> */}
 
       <Box mt={2} display="flex" justifyContent="space-between">
         <Button
@@ -236,6 +412,35 @@ export default function FilterByData({
           Apply Now
         </Button>
       </Box>
+
+      {/* Debug info - remove in production */}
+      {/* {process.env.NODE_ENV === "development" && (
+        <Box mt={2} p={1} bgcolor="#f5f5f5" borderRadius={1}>
+          <Typography variant="caption" display="block">
+            Selected Filters:
+          </Typography>
+          <Typography
+            variant="caption"
+            display="block"
+            sx={{ fontWeight: "bold" }}
+          >
+            Enums:
+          </Typography>
+          <pre style={{ fontSize: "10px", margin: 0, marginBottom: 8 }}>
+            {JSON.stringify(selectedEnums, null, 2)}
+          </pre>
+          <Typography
+            variant="caption"
+            display="block"
+            sx={{ fontWeight: "bold" }}
+          >
+            Ranges:
+          </Typography>
+          <pre style={{ fontSize: "10px", margin: 0 }}>
+            {JSON.stringify(selectedRanges, null, 2)}
+          </pre>
+        </Box>
+      )} */}
     </Box>
   );
 }

@@ -1,3 +1,4 @@
+import { DataType } from "../models/dataType";
 import { GridMaster } from "../models/gridMaster";
 
 export const validateInput: Partial<GridMaster> = {
@@ -32,6 +33,7 @@ export const validateInput: Partial<GridMaster> = {
       filterable: false,
       displayable: true,
       formElementType: "text",
+      type: DataType.STRING,
     },
   ],
 };

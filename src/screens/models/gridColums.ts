@@ -1,3 +1,5 @@
+import { DataType } from "./dataType";
+
 export interface GridColumns {
   id: number;
   gridId: number;
@@ -9,5 +11,6 @@ export interface GridColumns {
   displayable: boolean;
   formElementType: any;
   enumValues?: any[];
+  type: DataType;
   readOnly?: boolean;
 }
