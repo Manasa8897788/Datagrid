@@ -228,7 +228,7 @@ export const customerGrid: GridMaster = {
       filterable: false,
       displayable: true,
       formElementType: "date",
-      type: DataType.DATA_AND_TIME,
+      type: DataType.DATE_AND_TIME,
     },
     {
       id: 14,

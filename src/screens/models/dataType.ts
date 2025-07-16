@@ -5,6 +5,6 @@ export enum DataType {
   BOOLEAN = "BOOLEAN",
   LONG = "LONG",
   DATE = "DATE",
-  DATA_AND_TIME = "DATA_AND_TIME",
+  DATE_AND_TIME = "DATE_AND_TIME",
   ENUM = "ENUM",
 }
