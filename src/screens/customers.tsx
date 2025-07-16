@@ -10,8 +10,7 @@ import { validateInput } from "./data/validateInput";
 const Customers: React.FC = () => {
   const [customData, setCustomData] = useState<Customer[]>([]);
   const [sortColumn, setSortColumn] = useState<string>("");
-const [sortDirection, setSortDirection] = useState<"ASC" | "DESC">("ASC");
-
+  const [sortDirection, setSortDirection] = useState<"ASC" | "DESC">("ASC");
 
   const handleDelete = (val: any) => {
     console.log("handle Delete", val);
@@ -33,37 +32,39 @@ const [sortDirection, setSortDirection] = useState<"ASC" | "DESC">("ASC");
     try {
       const { sortActionKeys, order } = value;
 
-      if (sortActionKeys && sortActionKeys.length > 0) {
-        const direction = order.toUpperCase();
-        const columns = sortActionKeys.join(",");
+      // if (sortActionKeys && sortActionKeys.length > 0) {
+      //   const direction = order.toUpperCase();
+      //   const columns = sortActionKeys.join(",");
 
-        const sortedData = await dataService.getCustomerMasterListBySort(columns, direction);
-        setCustomData(sortedData);
-      } else {
-        const response = await dataService.getCustomerMasterList();
-        if (response.content && Array.isArray(response.content)) {
-          setCustomData(response.content);
-        }
-      }
+      //   const sortedData = await dataService.getCustomerMasterListBySort(
+      //     columns,
+      //     direction
+      //   );
+      //   setCustomData(sortedData);
+      // } else {
+
+      // }
     } catch (error) {
       console.error("Error in handleSort:", error);
     }
   };
 
-
-   
-
-  const handlePagination = async (offset: number, pageSize: number) => {
-    console.log("value :", offset, pageSize);
+  const handlePagination = async (pageNumber: number, pageSize: number) => {
+    console.log("value :", pageNumber, pageSize);
+    const offset = pageNumber - 1;
     try {
-
       const response = await dataService.getCustomersPaginated(
         offset,
         pageSize
       );
       console.log("Paginated response:", response);
-      setCustomData(response.records.content || []);
+      setCustomData(response?.content?.records || []);
       //setTotalRecords(response.totalCount || 0);
+      setCustomerGrid((prev) => ({
+        ...prev,
+        currentPage: pageNumber,
+        totalPages: response?.content?.totalPages || 1,
+      }));
     } catch (error) {
       console.error("Error fetching paginated customers:", error);
     }
@@ -73,11 +74,11 @@ const [sortDirection, setSortDirection] = useState<"ASC" | "DESC">("ASC");
     console.log("handleFilter", value);
   };
 
-  const handleSelect = () => { };
-  const handleClearSort = () => { };
-  const handleClearFilter = () => { };
-  const handleColumnSort = () => { };
-  const handleDownload = () => { };
+  const handleSelect = () => {};
+  const handleClearSort = () => {};
+  const handleClearFilter = () => {};
+  const handleColumnSort = () => {};
+  const handleDownload = () => {};
 
   const [customerGrid, setCustomerGrid] = useState<GridMaster>({
     ...validateInput,
@@ -102,14 +103,18 @@ const [sortDirection, setSortDirection] = useState<"ASC" | "DESC">("ASC");
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await dataService.getCustomerMasterList();
-        console.log("Response from getCustomerMasterList:", response.content);
-
-        if (response.content && Array.isArray(response.content)) {
-          setCustomData(response.content);
-        }
-      } catch (err) {
-        console.error(err);
+        const response = await dataService.getCustomersPaginated(0, 5);
+        console.log("PPPPaginated response:", response);
+        console.log("PPData", response?.content?.records);
+        setCustomData(response?.content?.records || []);
+        //setTotalRecords(response.totalCount || 0);
+        setCustomerGrid((prev) => ({
+          ...prev,
+          currentPage: 1,
+          totalPages: response?.content?.totalPages || 1,
+        }));
+      } catch (error) {
+        console.error("Error fetching paginated customers:", error);
       }
     };
 

@@ -68,7 +68,11 @@ const DataTable: React.FC<DataTableProps> = ({
   children,
 }) => {
   const gridMasterObj = gridMaster || children;
-  const { callBacks } = gridMaster || children;
+  const {
+    callBacks,
+    totalPages: serverPages,
+    currentPage,
+  } = gridMaster || children;
   const [selectedEnums, setSelectedEnums] = useState<FilterCriteria[]>([]);
   const [selectedRanges, setSelectedRanges] = useState<RangeCriteria[]>([]);
   const [serviceData, setServiceData] = useState<GenericFilterRequest>(
@@ -100,6 +104,8 @@ const DataTable: React.FC<DataTableProps> = ({
 
     setFilteredData(sorted);
   };
+
+  console.log("PPcurrentPage", currentPage, serverPages);
 
   const [searchText, setSearchText] = useState("");
   const [filteredData, setFilteredData] = useState(data);
@@ -215,10 +221,9 @@ const DataTable: React.FC<DataTableProps> = ({
     event: React.ChangeEvent<unknown>,
     newPage: number
   ) => {
-    const offset = newPage - 1;
     setPage(newPage);
     if (callBacks.onPagination) {
-      callBacks.onPagination(offset, rowsPerPage);
+      callBacks.onPagination(newPage, rowsPerPage);
     }
   };
 
@@ -1173,8 +1178,8 @@ const DataTable: React.FC<DataTableProps> = ({
             </Button>
           </Box> */}
           <Pagination
-            count={totalPages}
-            page={page}
+            count={serverPages}
+            page={currentPage || 9}
             onChange={handlePaginationChange}
             variant="outlined"
             shape="rounded"

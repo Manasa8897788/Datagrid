@@ -46,7 +46,7 @@ export default function SortByData({
     {}
   );
 
-  console.log(selectedColumns, selectedColumns);
+  console.log("selectedColumns", selectedColumns);
 
   const handleCheckboxChange = (
     column: (typeof customerGrid.gridColumns)[0]
@@ -57,7 +57,7 @@ export default function SortByData({
 
     if (isCurrentlySelected) {
       setSelectedColumns((prev: any) =>
-        prev.filter((col: any) => col.code !== column.code)
+        prev.filter((col: any) => col !== column.code)
       );
       setSelectedEnums((prev) => {
         const newEnums = { ...prev };
@@ -65,7 +65,7 @@ export default function SortByData({
         return newEnums;
       });
     } else {
-      setSelectedColumns((prev: any) => [...prev, column]);
+      setSelectedColumns((prev: any) => [...prev, column.code]);
     }
   };
 
@@ -149,7 +149,7 @@ export default function SortByData({
       </Typography>
       {sortableColumns.map((column) => {
         const isChecked = selectedColumns.some(
-          (col: any) => col.code === column.code
+          (each: any) => each === column.code
         );
         return (
           <React.Fragment key={column.code}>
