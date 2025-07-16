@@ -1,6 +1,43 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Box, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, TextField, Typography, Avatar, IconButton, Checkbox, MenuItem, Select, FormControl, ToggleButton, ToggleButtonGroup, Pagination, ClickAwayListener, TableSortLabel, Drawer, SelectChangeEvent, } from "@mui/material";
-import { Search as SearchIcon, FilterList as FilterListIcon, Visibility as VisibilityIcon, Edit as EditIcon, Delete as DeleteIcon, Download as DownloadIcon, Sort as SortIcon, ViewList as ViewListIcon, ViewModule as ViewModuleIcon, MoreVert as MoreVertIcon, ArrowDownward as ArrowDownwardIcon, ArrowUpward as ArrowUpwardIcon, } from "@mui/icons-material";
+import {
+  Box,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper,
+  TextField,
+  Typography,
+  Avatar,
+  IconButton,
+  Checkbox,
+  MenuItem,
+  Select,
+  FormControl,
+  ToggleButton,
+  ToggleButtonGroup,
+  Pagination,
+  ClickAwayListener,
+  TableSortLabel,
+  Drawer,
+  SelectChangeEvent,
+} from "@mui/material";
+import {
+  Search as SearchIcon,
+  FilterList as FilterListIcon,
+  Visibility as VisibilityIcon,
+  Edit as EditIcon,
+  Delete as DeleteIcon,
+  Download as DownloadIcon,
+  Sort as SortIcon,
+  ViewList as ViewListIcon,
+  ViewModule as ViewModuleIcon,
+  MoreVert as MoreVertIcon,
+  ArrowDownward as ArrowDownwardIcon,
+  ArrowUpward as ArrowUpwardIcon,
+} from "@mui/icons-material";
 import { GridMaster } from "./models/gridMaster";
 import { GridColumns } from "./models/gridColums";
 import SortByData from "./sort/sort";
@@ -52,6 +89,7 @@ const DataTable: React.FC<DataTableProps> = ({
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [drawerData, setDrawerData] = useState<any>(null);
   const [sortType, setSortType] = useState<"asc" | "desc">("asc");
+  const [isOnSearchClicked, setIsOnSearchClicked] = useState<boolean>(false);
 
   const handleRequestSort = (property: string) => {
     const isAsc = orderBy === property && order === "asc";
@@ -70,7 +108,25 @@ const DataTable: React.FC<DataTableProps> = ({
     setFilteredData(sorted);
   };
 
-  console.log("PPcurrentPage", currentPage, serverPages);
+  const isServiceDataEmpty = (value: GenericFilterRequest): boolean => {
+    const isEmptyArray = (arr?: any[] | null): boolean => {
+      return !arr || arr.length === 0;
+    };
+
+    const isEmptyString = (str?: string | null): boolean => {
+      return !str || str.trim() === "";
+    };
+
+    return (
+      (isEmptyString(value.searchKey) &&
+        isEmptyArray(value.searchableColumns)) ||
+      isEmptyArray(value.filters) ||
+      isEmptyArray(value.ranges) ||
+      (isEmptyArray(value.sortColumns) && isEmptyString(value.sortDirection))
+    );
+  };
+
+  // console.log("PPcurrentPage", currentPage, serverPages);
 
   const [searchText, setSearchText] = useState("");
   const [filteredData, setFilteredData] = useState(data);
@@ -87,7 +143,7 @@ const DataTable: React.FC<DataTableProps> = ({
 
   const triggerRef = useRef<HTMLDivElement>(null);
 
-  console.log("%%serviceData", serviceData);
+  // console.log("%%serviceData", serviceData);
 
   const searchableColumns = gridMasterObj.gridColumns
     .filter((col) => col.searchReqd && col.displayable)
@@ -101,10 +157,10 @@ const DataTable: React.FC<DataTableProps> = ({
       filters:
         selectedEnums.length > 0
           ? selectedEnums.map((each: any) => ({
-            field: each.fieldCode,
-            values: each.values,
-            type: each.type,
-          }))
+              field: each.fieldCode,
+              values: each.values,
+              type: each.type,
+            }))
           : null,
 
       // [
@@ -137,12 +193,31 @@ const DataTable: React.FC<DataTableProps> = ({
       //   },
       // ],
 
-      sortColumns: sortType.toLocaleUpperCase() ? selectedColumns : null, // ["registeredOn"],
-      sortDirection: sortType.toLocaleUpperCase() ?? null, // "DESC",
+      sortColumns: selectedColumns.length > 0 ? selectedColumns : null, // ["registeredOn"],
+      sortDirection:
+        selectedColumns.length > 0 ? sortType.toLocaleUpperCase() : null, // "DESC",
 
       pageNumber: page - 1,
       pageSize: rowsPerPage,
     });
+
+    if (isOnSearchClicked && callBacks.onSearch) {
+      setIsOnSearchClicked(false);
+      callBacks.onSearch({
+        searchKey: searchText ?? null,
+        searchableColumns: searchText ? searchableColumns : null,
+
+        pageNumber: page - 1,
+        pageSize: rowsPerPage,
+      });
+      setServiceData({
+        searchKey: searchText ?? null,
+        searchableColumns: searchText ? searchableColumns : null,
+
+        pageNumber: page - 1,
+        pageSize: rowsPerPage,
+      });
+    }
   }, [
     searchText,
     selectedEnums,
@@ -151,6 +226,7 @@ const DataTable: React.FC<DataTableProps> = ({
     sortType,
     rowsPerPage,
     page,
+    isOnSearchClicked,
   ]);
 
   const handleToggle = () => {
@@ -161,18 +237,28 @@ const DataTable: React.FC<DataTableProps> = ({
     if (!Array.isArray(data)) {
       setFilteredData([]);
       return;
-    } else if (gridMasterObj.serverSide) {
-      const lowerText = searchText.toLowerCase();
-      const filtered = data.filter((row) =>
-        searchableFields.some((field) =>
-          String(row[field] ?? "")
-            .toLowerCase()
-            .includes(lowerText)
-        )
-      );
-      setFilteredData(filtered);
-      setPage(1);
     }
+
+    const lowerText = searchText.trim().toLowerCase();
+
+    if (gridMasterObj.serverSide) {
+      setFilteredData(data);
+    } else {
+      if (!lowerText) {
+        setFilteredData(data);
+      } else {
+        const filtered = data.filter((row) =>
+          searchableFields.some((field) =>
+            String(row[field] ?? "")
+              .toLowerCase()
+              .includes(lowerText)
+          )
+        );
+        setFilteredData(filtered);
+      }
+    }
+
+    setPage(1);
   }, [searchText, data]);
 
   const handleChangePage = (
@@ -187,7 +273,7 @@ const DataTable: React.FC<DataTableProps> = ({
       callBacks.onDelete(selectedRows);
       // handleDelete(selectedRows);
     }
-    console.log("delete clicked");
+    // console.log("delete clicked");
   };
   const handlePaginationChange = (
     event: React.ChangeEvent<unknown>,
@@ -195,7 +281,13 @@ const DataTable: React.FC<DataTableProps> = ({
   ) => {
     setPage(newPage);
     if (callBacks.onPagination) {
-      callBacks.onPagination(newPage, rowsPerPage);
+      const value = {
+        page: newPage,
+        rowsPerPage: rowsPerPage,
+        filteredData: { ...serviceData, pageNumber: newPage },
+        isFilter: isServiceDataEmpty(serviceData),
+      };
+      callBacks.onPagination(value);
     }
   };
 
@@ -204,29 +296,29 @@ const DataTable: React.FC<DataTableProps> = ({
     setRowsPerPage(newRowsPerPage);
     setPage(1);
     if (callBacks.onPagination) {
-      callBacks.onPagination(0, newRowsPerPage);
+      // callBacks.onPagination(0, newRowsPerPage);
     }
   };
 
   const ondeleteCell = (key: any) => {
-    console.log("delete", key);
+    // console.log("delete", key);
     if (callBacks.onRowDelete) {
       callBacks.onRowDelete(key);
     }
   };
 
   const onHandleView = (key: any) => {
-    console.log("view", key);
+    // console.log("view", key);
     if (callBacks.onRowView) {
       callBacks.onRowView(key);
     }
   };
   const onHandleEdit = (key: any, data: any) => {
-    console.log("edit ", key);
+    // console.log("edit ", key);
     if (callBacks.onRowEdit) {
       setDrawerOpen(true);
-      console.log("drawerData", data);
-      console.log("gridColumns", gridMasterObj.gridColumns);
+      // console.log("drawerData", data);
+      // console.log("gridColumns", gridMasterObj.gridColumns);
       setDrawerData(data);
       callBacks.onRowEdit(key);
     }
@@ -327,7 +419,6 @@ const DataTable: React.FC<DataTableProps> = ({
     setPendingFormat("");
   };
 
-
   const handleCancelDownload = () => {
     setPendingFormat("");
     setConfirmOpen(false);
@@ -376,7 +467,25 @@ const DataTable: React.FC<DataTableProps> = ({
               variant="outlined"
               size="small"
               value={searchText}
-              onChange={(e) => setSearchText(e.target.value)}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                setSearchText(e.target.value);
+              }}
+              onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
+                if (
+                  e.key === "Enter" &&
+                  searchText.trim().length >= 3 &&
+                  callBacks.onSearch
+                ) {
+                  console.log("Enter pressed", serviceData);
+                  setIsOnSearchClicked(true);
+                  // callBacks.onSearch({
+                  //   searchKey: searchText,
+                  //   searchableColumns: searchText ? searchableColumns : null,
+                  //   pageNumber: page - 1,
+                  //   pageSize: rowsPerPage,
+                  // });
+                }
+              }}
               InputProps={{
                 startAdornment: (
                   <SearchIcon
@@ -1149,7 +1258,7 @@ const DataTable: React.FC<DataTableProps> = ({
           </Box> */}
           <Pagination
             count={serverPages}
-            page={currentPage || 9}
+            page={currentPage || 1}
             onChange={handlePaginationChange}
             variant="outlined"
             shape="rounded"

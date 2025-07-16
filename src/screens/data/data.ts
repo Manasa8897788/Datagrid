@@ -54,8 +54,9 @@ const handleDownload = (key: any) => {
 //   console.log("onPaginatoin", key1, key2);
 // };
 
-const handlePagination = async (offset: number, pageSize: number) => {
-  console.log("value :", offset, pageSize);
+const handlePagination = async (value: any) => {
+  const { page: pageNumber, rowsPerPage: pageSize, isFilter } = value;
+
   // try {
   //   const response = await dataService.getCustomersPaginated(offset, pageSize);
   //   console.log("Paginated response:", response);
@@ -155,7 +156,7 @@ export const customerGrid: GridMaster = {
       code: "dob",
       title: "Date of Birth",
       sortable: false,
-      searchReqd: true,
+      searchReqd: false,
       filterable: true,
       displayable: true,
       formElementType: "range",

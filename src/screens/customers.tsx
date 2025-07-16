@@ -9,7 +9,6 @@ import { validateInput } from "./data/validateInput";
 import { exportToExcel } from "./excelExport";
 import { exportToPDF } from "./exportPdf";
 
-
 const Customers: React.FC = () => {
   const [customData, setCustomData] = useState<Customer[]>([]);
 
@@ -21,7 +20,7 @@ const Customers: React.FC = () => {
       setCustomData(response?.content?.records || []);
       setCustomerGrid((prev) => ({
         ...prev,
-        currentPage: customerGrid.currentPage,
+        currentPage: value.pageNumber || customerGrid.currentPage,
         totalPages: response?.content?.totalPages || 1,
       }));
     } catch (error) {
@@ -54,26 +53,38 @@ const Customers: React.FC = () => {
     getFilterdData(value);
   };
 
-
-  const handlePagination = async (pageNumber: number, pageSize: number) => {
-    console.log("value :", pageNumber, pageSize);
+  const handlePagination = async (value: any) => {
+    const {
+      page: pageNumber,
+      rowsPerPage: pageSize,
+      isFilter,
+      filteredData,
+    } = value;
     const currentPage = pageNumber < 1 ? 1 : pageNumber;
     const offset = currentPage - 1; // now offset >= 0 always
 
-    try {
-      const response = await dataService.getCustomersPaginated(
-        offset,
-        pageSize
-      );
-      console.log("Paginated response:", response);
-      setCustomData(response?.content?.records || []);
-      setCustomerGrid((prev) => ({
-        ...prev,
-        currentPage: currentPage,
-        totalPages: response?.content?.totalPages || 1,
-      }));
-    } catch (error) {
-      console.error("Error fetching paginated customers:", error);
+    if (isFilter) {
+      console.log("filteredData", filteredData);
+      getFilterdData(filteredData);
+      console.log("filter");
+    } else {
+      try {
+        const response = await dataService.getCustomersPaginated(
+          offset,
+          pageSize
+        );
+        console.log("Paginated response:", response);
+        setCustomData(response?.content?.records || []);
+        setCustomerGrid((prev) => ({
+          ...prev,
+          currentPage: currentPage,
+          totalPages: response?.content?.totalPages || 1,
+        }));
+      } catch (error) {
+        setCustomData([]);
+        console.error("Error fetching paginated customers:", error);
+      }
+      console.log("paginated");
     }
   };
 
@@ -87,34 +98,33 @@ const Customers: React.FC = () => {
   const handleClearFilter = () => {};
   const handleColumnSort = () => {};
 
-
   const handleDownload = async (format: "xlsx" | "pdf") => {
-  try {
-const response = await dataService.getCustomerMasterList();
-const exportData = response?.content || [];
-    console.log("Export Data:", exportData);
-    const exportableColumns = customerGrid.gridColumns
-      .filter((col) => col.displayable && col.code !== "ID")
-      .map((col) => ({ title: col.title, code: col.code }));
+    try {
+      const response = await dataService.getCustomerMasterList();
+      const exportData = response?.content || [];
+      console.log("Export Data:", exportData);
+      const exportableColumns = customerGrid.gridColumns
+        .filter((col) => col.displayable && col.code !== "ID")
+        .map((col) => ({ title: col.title, code: col.code }));
 
-    if (format === "xlsx") {
-      exportToExcel(exportData, exportableColumns, "Customer_Master_Export");
-    }
+      if (format === "xlsx") {
+        exportToExcel(exportData, exportableColumns, "Customer_Master_Export");
+      }
 
-    if (format === "pdf") {
-      exportToPDF(
-        exportData,
-        exportableColumns.map(({ code, title }) => ({
-          code,
-          name: title,
-        })),
-        "Customer_Master_Export"
-      );
+      if (format === "pdf") {
+        exportToPDF(
+          exportData,
+          exportableColumns.map(({ code, title }) => ({
+            code,
+            name: title,
+          })),
+          "Customer_Master_Export"
+        );
+      }
+    } catch (error) {
+      console.error("Error during export:", error);
     }
-  } catch (error) {
-    console.error("Error during export:", error);
-  }
-};
+  };
   const [customerGrid, setCustomerGrid] = useState<GridMaster>({
     ...validateInput,
     ...customerGridDefault,

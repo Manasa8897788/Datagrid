@@ -46,5 +46,5 @@ interface CallBacks {
   onClearFilter?: (key: any) => void;
   onColumnSort?: (key: any) => void;
   onDownload?: (key: any) => void;
-  onPagination?: (key1: any, key2: any) => void;
+  onPagination?: (key: any) => void;
 }

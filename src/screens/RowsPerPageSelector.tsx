@@ -1,10 +1,5 @@
 import React, { useState } from "react";
-import {
-  Box,
-  Typography,
-  TextField,
-  Autocomplete,
-} from "@mui/material";
+import { Box, Typography, TextField, Autocomplete } from "@mui/material";
 import { GridMaster } from "./models/gridMaster";
 
 interface RowsPerPageSelectorProps {
@@ -20,8 +15,9 @@ const RowsPerPageSelector: React.FC<RowsPerPageSelectorProps> = ({
 }) => {
   const [inputValue, setInputValue] = useState(currentRowsPerPage.toString());
 
-  const pageOptions =
-    gridMaster?.gridPagination?.recordPerPage || [5, 10, 25, 50, 100];
+  const pageOptions = gridMaster?.gridPagination?.recordPerPage || [
+    5, 10, 25, 50, 100,
+  ];
 
   const handleInputChange = (
     event: React.SyntheticEvent,
@@ -31,13 +27,19 @@ const RowsPerPageSelector: React.FC<RowsPerPageSelectorProps> = ({
     const numericValue = Number(newInputValue);
     if (!isNaN(numericValue) && numericValue > 0) {
       setRowsPerPage(numericValue);
-      gridMaster?.callBacks?.onPagination?.(0, numericValue);
+
+      const value = {
+        page: 0,
+        rowsPerPage: numericValue,
+        isFilter: false,
+      };
+
+      gridMaster?.callBacks?.onPagination?.(value);
     }
   };
 
   return (
     <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-     
       <Autocomplete
         freeSolo
         options={pageOptions.map((opt) => opt.toString())}
