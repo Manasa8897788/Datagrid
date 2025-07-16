@@ -1,43 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
-import {
-  Box,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Paper,
-  TextField,
-  Typography,
-  Avatar,
-  IconButton,
-  Checkbox,
-  MenuItem,
-  Select,
-  FormControl,
-  ToggleButton,
-  ToggleButtonGroup,
-  Pagination,
-  ClickAwayListener,
-  TableSortLabel,
-  Drawer,
-  SelectChangeEvent,
-} from "@mui/material";
-import {
-  Search as SearchIcon,
-  FilterList as FilterListIcon,
-  Visibility as VisibilityIcon,
-  Edit as EditIcon,
-  Delete as DeleteIcon,
-  Download as DownloadIcon,
-  Sort as SortIcon,
-  ViewList as ViewListIcon,
-  ViewModule as ViewModuleIcon,
-  MoreVert as MoreVertIcon,
-  ArrowDownward as ArrowDownwardIcon,
-  ArrowUpward as ArrowUpwardIcon,
-} from "@mui/icons-material";
+import { Box, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, TextField, Typography, Avatar, IconButton, Checkbox, MenuItem, Select, FormControl,ToggleButton,ToggleButtonGroup,Pagination,ClickAwayListener, TableSortLabel, Drawer,SelectChangeEvent,} from "@mui/material";
+import {Search as SearchIcon,FilterList as FilterListIcon,Visibility as VisibilityIcon,Edit as EditIcon,Delete as DeleteIcon,Download as DownloadIcon,Sort as SortIcon,ViewList as ViewListIcon,ViewModule as ViewModuleIcon,MoreVert as MoreVertIcon,ArrowDownward as ArrowDownwardIcon,ArrowUpward as ArrowUpwardIcon,} from "@mui/icons-material";
 import { GridMaster } from "./models/gridMaster";
 import { GridColumns } from "./models/gridColums";
 import SortByData from "./sort/sort";
@@ -187,7 +150,7 @@ const DataTable: React.FC<DataTableProps> = ({
 
   useEffect(() => {
     if (!Array.isArray(data)) {
-      setFilteredData([]); // or handle it differently
+      setFilteredData([]);
       return;
     } else if (gridMasterObj.serverSide) {
       const lowerText = searchText.toLowerCase();
@@ -1126,20 +1089,24 @@ const DataTable: React.FC<DataTableProps> = ({
           <FormControl size="small" sx={{ minWidth: 150 }}>
             <Select
               displayEmpty
-              value={exportFormat}
+              value={pendingFormat || exportFormat}
               onChange={handleExportFormatChange}
               sx={{ fontSize: "14px" }}
+              renderValue={(selected) => {
+                if (!selected) {
+                  return (
+                    <Typography variant="body2" color="text.secondary">
+                      Select File Format
+                    </Typography>
+                  );
+                }
+                return selected === "xlsx" ? "Excel" : "PDF";
+              }}
             >
-              <MenuItem value="" disabled>
-                <Typography variant="body2" color="text.secondary">
-                  Select File Format
-                </Typography>
-              </MenuItem>
               <MenuItem value="xlsx">Excel</MenuItem>
               <MenuItem value="pdf">PDF</MenuItem>
             </Select>
           </FormControl>
-
           <CustomAlertDialog
             confirmOpen={confirmOpen}
             handleCancel={handleCancelDownload}
