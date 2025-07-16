@@ -574,6 +574,7 @@ const DataTable: React.FC<DataTableProps> = ({
                     py: "2 !important",
                     whiteSpace: "nowrap",
                     border: "none",
+
                   }}
                 >
                   <TableCell padding="checkbox">
@@ -686,17 +687,24 @@ const DataTable: React.FC<DataTableProps> = ({
                       </TableCell>
 
                       {gridMasterObj.indexReqd && (
-                        <TableCell>
+                        <TableCell sx={{ whiteSpace: "nowrap", overflow: "hidden" }}>
                           <Typography variant="body2" color="text.secondary">
                             {String(actualIndex + 1).padStart(2, "0")}
                           </Typography>
                         </TableCell>
                       )}
-
                       {gridMasterObj.gridColumns
                         .filter((col) => col.displayable && col.code !== "ID")
                         .map((col) => (
-                          <TableCell key={col.code}>
+                          <TableCell
+                            key={col.code}
+                            sx={{
+                              whiteSpace: "nowrap",
+                              overflow: "hidden",
+                              textOverflow: "ellipsis",
+                              maxWidth: "200px" 
+                            }}
+                          >
                             {["name", "fullName"].includes(col.code) ? (
                               <Box display="flex" alignItems="center" gap={1}>
                                 <Avatar
@@ -712,6 +720,11 @@ const DataTable: React.FC<DataTableProps> = ({
                                 <Typography
                                   variant="body2"
                                   color="text.primary"
+                                  sx={{
+                                    whiteSpace: "nowrap",
+                                    overflow: "hidden",
+                                    textOverflow: "ellipsis"
+                                  }}
                                 >
                                   {row[col.code]}
                                 </Typography>
@@ -1001,13 +1014,13 @@ const DataTable: React.FC<DataTableProps> = ({
         </div>
       )}
 
-      {paginatedData.length === 0 && (
+      {/* {paginatedData.length === 0 && (
         <Box sx={{ width: "100%", textAlign: "center", py: 5 }}>
           <Typography variant="body2" color="text.secondary">
             No records found
           </Typography>
         </Box>
-      )}
+      )} */}
 
       {/* Footer with pagination and controls */}
       <Box
