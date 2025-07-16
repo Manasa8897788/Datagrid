@@ -155,7 +155,7 @@ export const customerGrid: GridMaster = {
       filterable: true,
       displayable: true,
       formElementType: "range",
-      type: DataType.STRING,
+      type: DataType.DATE,
     },
     {
       id: 8,

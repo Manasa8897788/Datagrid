@@ -1,5 +1,7 @@
 import axios from 'axios';
 import { customerGrid } from '../screens/data/data';
+import { Customer } from '../screens/models/customer';
+import { GenericFilterRequest } from '../screens/models/genericFilterRequest';
 
 const API_BASE_URL = 'http://13.203.127.30:9999/aurave-api';
 
@@ -52,7 +54,22 @@ const dataService = {
       console.error('Error fetching paginated and sorted customers:', error);
       throw error;
     }
+  },
+
+
+  async filterCustomers(requestBody: GenericFilterRequest): Promise<Customer[]> {
+    try {
+      const response = await axios.post<Customer[]>(
+        `${API_BASE_URL}/customer/master/get/page/filter`,
+        requestBody
+      );
+      return response.data;
+    } catch (error: any) {
+      console.error("Error filtering customers:", error);
+      throw error;
+    }
   }
+
 
 };
 

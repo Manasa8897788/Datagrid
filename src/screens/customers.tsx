@@ -27,27 +27,18 @@ const Customers: React.FC = () => {
   const handleEdit = (value: any) => {
     console.log("handleEdit", value);
   };
-  const handleSort = async (value: any) => {
-    console.log("handleSort ->", value);
-    try {
-      const { sortActionKeys, order } = value;
+   const handleSort = async (value: any) => {
+  console.log("handleSort:", value);
 
-      // if (sortActionKeys && sortActionKeys.length > 0) {
-      //   const direction = order.toUpperCase();
-      //   const columns = sortActionKeys.join(",");
+  try {
+    const response:any = await dataService.filterCustomers(value);
+    console.log("Sorted response:", response);
+    setCustomData(response?.records.content || []);
+  } catch (error) {
+    console.error("Error filterCustomers:", error);
+  }
+};
 
-      //   const sortedData = await dataService.getCustomerMasterListBySort(
-      //     columns,
-      //     direction
-      //   );
-      //   setCustomData(sortedData);
-      // } else {
-
-      // }
-    } catch (error) {
-      console.error("Error in handleSort:", error);
-    }
-  };
 
   const handlePagination = async (pageNumber: number, pageSize: number) => {
     console.log("value :", pageNumber, pageSize);
