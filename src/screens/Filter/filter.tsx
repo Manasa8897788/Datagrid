@@ -78,22 +78,22 @@ export default function FilterByData({
   // Handle radio button changes
   const handleRadioChange = (
     event: React.ChangeEvent<HTMLInputElement>,
-    columnCode: string,
-    columnTitle: string
+    column: any
   ) => {
     const value = event.target.value;
 
     setSelectedEnums((prev: any) => {
       // Remove existing entry for this field if it exists
-      const filtered = prev.filter((item: any) => item.field !== columnTitle);
+      const filtered = prev.filter((item: any) => item.field !== column.title);
 
       // Add new entry with single value (radio allows only one selection)
       return [
         ...filtered,
         {
-          field: columnTitle,
+          field: column.title,
           values: [value],
-          fieldCode: columnCode,
+          fieldCode: column.code,
+          type: column.type,
         },
       ];
     });
@@ -103,14 +103,13 @@ export default function FilterByData({
   const handleCheckboxChange = (
     event: React.ChangeEvent<HTMLInputElement>,
     item: string,
-    columnCode: string,
-    columnTitle: string
+    column: any
   ) => {
     const isChecked = event.target.checked;
 
     setSelectedEnums((prev: any) => {
       const existingIndex = prev.findIndex(
-        (criteria: any) => criteria.field === columnTitle
+        (criteria: any) => criteria.field === column.title
       );
 
       if (existingIndex >= 0) {
@@ -150,9 +149,10 @@ export default function FilterByData({
           return [
             ...prev,
             {
-              field: columnTitle,
+              field: column.title,
               values: [item],
-              fieldCode: columnCode,
+              fieldCode: column.code,
+              type: column.type,
             },
           ];
         }
@@ -286,9 +286,7 @@ export default function FilterByData({
                 </Typography>
                 <RadioGroup
                   value={getSelectedRadioValue(column.title)}
-                  onChange={(e) =>
-                    handleRadioChange(e, column.code, column.title)
-                  }
+                  onChange={(e) => handleRadioChange(e, column)}
                   sx={{ ml: 1 }}
                 >
                   {column.enumValues.map((val) => (
@@ -322,12 +320,7 @@ export default function FilterByData({
                           size="small"
                           checked={isCheckboxSelected(column.title, item)}
                           onChange={(e) =>
-                            handleCheckboxChange(
-                              e,
-                              item,
-                              column.code,
-                              column.title
-                            )
+                            handleCheckboxChange(e, item, column)
                           }
                         />
                       }

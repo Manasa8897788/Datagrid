@@ -36,7 +36,9 @@ const DataTable: React.FC<DataTableProps> = ({
     totalPages: serverPages,
     currentPage,
   } = gridMaster || children;
-  const [selectedEnums, setSelectedEnums] = useState<FilterCriteria[]>([]);
+  const [selectedEnums, setSelectedEnums] = useState<FilterCriteria[] | any>(
+    []
+  );
   const [selectedRanges, setSelectedRanges] = useState<RangeCriteria[]>([]);
   const [serviceData, setServiceData] = useState<GenericFilterRequest>(
     {} as GenericFilterRequest
@@ -93,10 +95,17 @@ const DataTable: React.FC<DataTableProps> = ({
 
   useEffect(() => {
     setServiceData({
-      searchKey: searchText,
-      searchableColumns: searchableColumns,
+      searchKey: searchText ?? null,
+      searchableColumns: searchText ? searchableColumns : null,
 
-      filters: selectedEnums,
+      filters:
+        selectedEnums.length > 0
+          ? selectedEnums.map((each: any) => ({
+              field: each.fieldCode,
+              values: each.values,
+              type: each.type,
+            }))
+          : null,
 
       // [
       //   {
@@ -111,7 +120,7 @@ const DataTable: React.FC<DataTableProps> = ({
       //   // }
       // ],
 
-      ranges: selectedRanges,
+      ranges: selectedRanges.length > 0 ? selectedRanges : null,
 
       // [
       //   {
@@ -128,8 +137,8 @@ const DataTable: React.FC<DataTableProps> = ({
       //   },
       // ],
 
-      sortColumns: selectedColumns, // ["registeredOn"],
-      sortDirection: sortType.toLocaleUpperCase(), // "DESC",
+      sortColumns: sortType.toLocaleUpperCase() ? selectedColumns : null, // ["registeredOn"],
+      sortDirection: sortType.toLocaleUpperCase() ?? null, // "DESC",
 
       pageNumber: page - 1,
       pageSize: rowsPerPage,
