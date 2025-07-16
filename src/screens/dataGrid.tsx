@@ -48,6 +48,9 @@ import CustomAlertDialog from "./utils/customAlert";
 import CancelIcon from "@mui/icons-material/Cancel";
 import DynamicForm from "./dynamicForms";
 import RowsPerPageSelector from "./RowsPerPageSelector";
+import { FilterCriteria } from "./models/searchCriteria";
+import { RangeCriteria } from "./models/rangeCriteria";
+import { GenericFilterRequest } from "./models/genericFilterRequest";
 
 interface DataTableProps {
   data: any[];
@@ -66,6 +69,11 @@ const DataTable: React.FC<DataTableProps> = ({
 }) => {
   const gridMasterObj = gridMaster || children;
   const { callBacks } = gridMaster || children;
+  const [selectedEnums, setSelectedEnums] = useState<FilterCriteria[]>([]);
+  const [selectedRanges, setSelectedRanges] = useState<RangeCriteria[]>([]);
+  const [serviceData, setServiceData] = useState<GenericFilterRequest>(
+    {} as GenericFilterRequest
+  );
   const searchableFields = getSearchableFields(gridMasterObj.gridColumns);
   const [exportFormat, setExportFormat] = useState("");
   const [pendingFormat, setPendingFormat] = useState("");
@@ -108,6 +116,65 @@ const DataTable: React.FC<DataTableProps> = ({
 
   const triggerRef = useRef<HTMLDivElement>(null);
 
+  console.log("%%serviceData", serviceData);
+
+  const searchableColumns = gridMasterObj.gridColumns
+    .filter((col) => col.searchReqd && col.displayable)
+    .map((each) => each.code);
+
+  useEffect(() => {
+    setServiceData({
+      searchKey: searchText,
+      searchableColumns: searchableColumns,
+
+      filters: selectedEnums,
+
+      // [
+      //   {
+      //     field: "gender",
+      //     values: ["MALE"],
+      //     type: "STRING",
+      //   },
+      //   // {
+      //   //   "field": "currency",
+      //   //   "values": ["INR", null],
+      //   //   "type": "STRING"
+      //   // }
+      // ],
+
+      ranges: selectedRanges,
+
+      // [
+      //   {
+      //     "field": "dob",
+      //     "from": "1990-01-01",
+      //     "to": "2005-12-31",
+      //     "type": "DATE"
+      //   },
+      //   {
+      //     field: "registeredOn",
+      //     from: "2025-01-01T00:00:00",
+      //     to: "2025-12-31T00:00:00",
+      //     type: "DATE_AND_TIME",
+      //   },
+      // ],
+
+      sortColumns: selectedColumns, // ["registeredOn"],
+      sortDirection: sortType.toLocaleUpperCase(), // "DESC",
+
+      pageNumber: page - 1,
+      pageSize: rowsPerPage,
+    });
+  }, [
+    searchText,
+    selectedEnums,
+    selectedRanges,
+    selectedColumns,
+    sortType,
+    rowsPerPage,
+    page,
+  ]);
+
   const handleToggle = () => {
     setShowSort((prev) => !prev);
   };
@@ -116,18 +183,18 @@ const DataTable: React.FC<DataTableProps> = ({
     if (!Array.isArray(data)) {
       setFilteredData([]); // or handle it differently
       return;
+    } else if (gridMasterObj.serverSide) {
+      const lowerText = searchText.toLowerCase();
+      const filtered = data.filter((row) =>
+        searchableFields.some((field) =>
+          String(row[field] ?? "")
+            .toLowerCase()
+            .includes(lowerText)
+        )
+      );
+      setFilteredData(filtered);
+      setPage(1);
     }
-
-    const lowerText = searchText.toLowerCase();
-    const filtered = data.filter((row) =>
-      searchableFields.some((field) =>
-        String(row[field] ?? "")
-          .toLowerCase()
-          .includes(lowerText)
-      )
-    );
-    setFilteredData(filtered);
-    setPage(1);
   }, [searchText, data]);
 
   const handleChangePage = (
@@ -415,6 +482,7 @@ const DataTable: React.FC<DataTableProps> = ({
                   >
                     <SortByData
                       handleSort={callBacks.onSort}
+                      serviceData={serviceData}
                       selectedColumns={selectedColumns}
                       setSelectedColumns={setSelectedColumns}
                       customerGrid={gridMasterObj}
@@ -476,8 +544,13 @@ const DataTable: React.FC<DataTableProps> = ({
                 <FilterByData
                   onClose={() => setShowFilter(false)}
                   sortActionKey={gridMasterObj.sortActionKey}
+                  serviceData={serviceData}
                   handleFilter={callBacks.onFilter}
                   customerGrid={gridMasterObj}
+                  selectedEnums={selectedEnums}
+                  setSelectedEnums={setSelectedEnums}
+                  selectedRanges={selectedRanges}
+                  setSelectedRanges={setSelectedRanges}
                 />
               </Box>
             )}
@@ -574,7 +647,6 @@ const DataTable: React.FC<DataTableProps> = ({
                     py: "2 !important",
                     whiteSpace: "nowrap",
                     border: "none",
-
                   }}
                 >
                   <TableCell padding="checkbox">
@@ -687,7 +759,9 @@ const DataTable: React.FC<DataTableProps> = ({
                       </TableCell>
 
                       {gridMasterObj.indexReqd && (
-                        <TableCell sx={{ whiteSpace: "nowrap", overflow: "hidden" }}>
+                        <TableCell
+                          sx={{ whiteSpace: "nowrap", overflow: "hidden" }}
+                        >
                           <Typography variant="body2" color="text.secondary">
                             {String(actualIndex + 1).padStart(2, "0")}
                           </Typography>
@@ -702,7 +776,7 @@ const DataTable: React.FC<DataTableProps> = ({
                               whiteSpace: "nowrap",
                               overflow: "hidden",
                               textOverflow: "ellipsis",
-                              maxWidth: "200px" 
+                              maxWidth: "200px",
                             }}
                           >
                             {["name", "fullName"].includes(col.code) ? (
@@ -723,7 +797,7 @@ const DataTable: React.FC<DataTableProps> = ({
                                   sx={{
                                     whiteSpace: "nowrap",
                                     overflow: "hidden",
-                                    textOverflow: "ellipsis"
+                                    textOverflow: "ellipsis",
                                   }}
                                 >
                                   {row[col.code]}

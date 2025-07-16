@@ -258,6 +258,7 @@ export const customerGrid: GridMaster = {
     onDownload: handleDownload,
     onPagination: handlePagination,
   },
+  serverSide: true,
 
   gridActions: {
     ep_data: { uri: "/customer/get", method: "GET" },

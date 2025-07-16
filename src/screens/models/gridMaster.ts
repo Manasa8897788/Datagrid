@@ -20,6 +20,7 @@ export interface GridMaster {
   gridColumns: GridColumns[];
   gridActions: Record<string, EndPoint>;
   callBacks: CallBacks;
+  serverSide: boolean;
 }
 
 interface EndPoint {

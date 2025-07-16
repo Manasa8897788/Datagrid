@@ -11,6 +11,7 @@ import {
 } from "@mui/material";
 import type { GridMaster } from "../models/gridMaster";
 import { GridColumns } from "../models/gridColums";
+import { GenericFilterRequest } from "../models/genericFilterRequest";
 
 type SortByDataProps = {
   onClose?: () => void;
@@ -20,6 +21,7 @@ type SortByDataProps = {
   setSelectedColumns: (columns: any) => void;
   sortType: any;
   setSortType: (val: any) => void;
+  serviceData: GenericFilterRequest;
 };
 
 export default function SortByData({
@@ -30,6 +32,7 @@ export default function SortByData({
   setSelectedColumns,
   setSortType,
   sortType,
+  serviceData,
 }: SortByDataProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const sortableColumns = customerGrid.gridColumns.filter(
@@ -73,7 +76,8 @@ export default function SortByData({
       const key: keyof (typeof selectedColumns)[0] = sortActionKey;
       const filteredKeys = selectedColumns.map((each: any) => each[key]);
       if (handleSort) {
-        handleSort({ order: "desc", sortActionKeys: filteredKeys });
+        // handleSort({ order: "desc", sortActionKeys: filteredKeys });
+        handleSort(serviceData);
       }
       onClose?.();
       return;

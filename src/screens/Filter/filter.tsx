@@ -16,12 +16,18 @@ import {
 import type { GridMaster } from "../models/gridMaster";
 import type { FilterCriteria } from "../models/searchCriteria";
 import type { RangeCriteria } from "../models/rangeCriteria";
+import { GenericFilterRequest } from "../models/genericFilterRequest";
 
 type SortByDataProps = {
   onClose?: () => void;
   handleFilter?: (key: any) => void;
   sortActionKey: any;
   customerGrid?: GridMaster;
+  selectedEnums: FilterCriteria[];
+  setSelectedEnums: (val: any) => void;
+  selectedRanges: RangeCriteria[];
+  setSelectedRanges: (val: any) => void;
+  serviceData: GenericFilterRequest;
 };
 
 export default function FilterByData({
@@ -29,6 +35,11 @@ export default function FilterByData({
   sortActionKey,
   customerGrid,
   handleFilter,
+  selectedEnums,
+  setSelectedEnums,
+  selectedRanges,
+  setSelectedRanges,
+  serviceData,
 }: SortByDataProps) {
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -39,8 +50,6 @@ export default function FilterByData({
   );
 
   // State to manage selected filter criteria
-  const [selectedEnums, setSelectedEnums] = useState<FilterCriteria[]>([]);
-  const [selectedRanges, setSelectedRanges] = useState<RangeCriteria[]>([]);
 
   const handleReset = () => {
     setSelectedEnums([]);
@@ -53,12 +62,13 @@ export default function FilterByData({
     console.log("Selected Ranges:", selectedRanges);
 
     if (sortActionKey && handleFilter) {
-      const value = {
-        sortActionKeys: [], // You can modify this based on your needs
-        selectedEnums: selectedEnums,
-        selectedRanges: selectedRanges,
-      };
-      handleFilter(value);
+      // const value = {
+      //   sortActionKeys: [], // You can modify this based on your needs
+      //   selectedEnums: selectedEnums,
+      //   selectedRanges: selectedRanges,
+      // };
+      // handleFilter(value);
+      handleFilter(serviceData);
     }
     if (onClose) {
       onClose();
@@ -161,9 +171,9 @@ export default function FilterByData({
   ) => {
     const value = event.target.value;
 
-    setSelectedRanges((prev) => {
+    setSelectedRanges((prev: any) => {
       const existingIndex = prev.findIndex(
-        (criteria) => criteria.field === columnTitle
+        (criteria: any) => criteria.field === columnTitle
       );
 
       if (existingIndex >= 0) {
