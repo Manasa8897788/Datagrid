@@ -6,6 +6,9 @@ import { customerGrid as customerGridDefault } from "../screens/data/data";
 import { Customer } from "./models/customer";
 import { GridMaster } from "./models/gridMaster";
 import { validateInput } from "./data/validateInput";
+import { exportToExcel } from "./excelExport";
+import { exportToPDF } from "./exportPdf";
+
 
 const Customers: React.FC = () => {
   const [customData, setCustomData] = useState<Customer[]>([]);
@@ -51,6 +54,7 @@ const Customers: React.FC = () => {
     getFilterdData(value);
   };
 
+
   const handlePagination = async (pageNumber: number, pageSize: number) => {
     console.log("value :", pageNumber, pageSize);
     const currentPage = pageNumber < 1 ? 1 : pageNumber;
@@ -82,8 +86,35 @@ const Customers: React.FC = () => {
   const handleClearSort = () => {};
   const handleClearFilter = () => {};
   const handleColumnSort = () => {};
-  const handleDownload = () => {};
 
+
+  const handleDownload = async (format: "xlsx" | "pdf") => {
+  try {
+const response = await dataService.getCustomerMasterList();
+const exportData = response?.content || [];
+    console.log("Export Data:", exportData);
+    const exportableColumns = customerGrid.gridColumns
+      .filter((col) => col.displayable && col.code !== "ID")
+      .map((col) => ({ title: col.title, code: col.code }));
+
+    if (format === "xlsx") {
+      exportToExcel(exportData, exportableColumns, "Customer_Master_Export");
+    }
+
+    if (format === "pdf") {
+      exportToPDF(
+        exportData,
+        exportableColumns.map(({ code, title }) => ({
+          code,
+          name: title,
+        })),
+        "Customer_Master_Export"
+      );
+    }
+  } catch (error) {
+    console.error("Error during export:", error);
+  }
+};
   const [customerGrid, setCustomerGrid] = useState<GridMaster>({
     ...validateInput,
     ...customerGridDefault,

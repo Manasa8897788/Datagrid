@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Box, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, TextField, Typography, Avatar, IconButton, Checkbox, MenuItem, Select, FormControl,ToggleButton,ToggleButtonGroup,Pagination,ClickAwayListener, TableSortLabel, Drawer,SelectChangeEvent,} from "@mui/material";
-import {Search as SearchIcon,FilterList as FilterListIcon,Visibility as VisibilityIcon,Edit as EditIcon,Delete as DeleteIcon,Download as DownloadIcon,Sort as SortIcon,ViewList as ViewListIcon,ViewModule as ViewModuleIcon,MoreVert as MoreVertIcon,ArrowDownward as ArrowDownwardIcon,ArrowUpward as ArrowUpwardIcon,} from "@mui/icons-material";
+import { Box, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, TextField, Typography, Avatar, IconButton, Checkbox, MenuItem, Select, FormControl, ToggleButton, ToggleButtonGroup, Pagination, ClickAwayListener, TableSortLabel, Drawer, SelectChangeEvent, } from "@mui/material";
+import { Search as SearchIcon, FilterList as FilterListIcon, Visibility as VisibilityIcon, Edit as EditIcon, Delete as DeleteIcon, Download as DownloadIcon, Sort as SortIcon, ViewList as ViewListIcon, ViewModule as ViewModuleIcon, MoreVert as MoreVertIcon, ArrowDownward as ArrowDownwardIcon, ArrowUpward as ArrowUpwardIcon, } from "@mui/icons-material";
 import { GridMaster } from "./models/gridMaster";
 import { GridColumns } from "./models/gridColums";
 import SortByData from "./sort/sort";
@@ -101,10 +101,10 @@ const DataTable: React.FC<DataTableProps> = ({
       filters:
         selectedEnums.length > 0
           ? selectedEnums.map((each: any) => ({
-              field: each.fieldCode,
-              values: each.values,
-              type: each.type,
-            }))
+            field: each.fieldCode,
+            values: each.values,
+            type: each.type,
+          }))
           : null,
 
       // [
@@ -314,28 +314,19 @@ const DataTable: React.FC<DataTableProps> = ({
     setConfirmOpen(true); // show confirmation dialog
   };
 
-  const handleConfirmDownload = () => {
+  const handleConfirmDownload = async () => {
     setExportFormat(pendingFormat);
-    setConfirmOpen(false); // close dialog
+    setConfirmOpen(false);
 
-    const exportableColumns = gridMasterObj.gridColumns.filter(
-      (col) => col.displayable && col.code !== "ID"
-    );
-
-    if (pendingFormat === "xlsx") {
-      exportToExcel(filteredData, exportableColumns, "DataTableExport");
+    try {
+      await gridMasterObj.callBacks?.onDownload?.(pendingFormat);
+    } catch (error) {
+      console.error("Error in dynamic download:", error);
     }
 
-    if (pendingFormat === "pdf") {
-      exportToPDF(
-        filteredData,
-        exportableColumns.map((col) => ({ code: col.code, name: col.title })),
-        "DataTableExport"
-      );
-    }
-
-    setPendingFormat(""); // clear pending format
+    setPendingFormat("");
   };
+
 
   const handleCancelDownload = () => {
     setPendingFormat("");
@@ -1092,9 +1083,11 @@ const DataTable: React.FC<DataTableProps> = ({
               Selected Rows {selectedRows.length}
             </Typography>
           )}
+
           <Typography variant="body2" color="text.secondary">
             Download by
           </Typography>
+
           <FormControl size="small" sx={{ minWidth: 150 }}>
             <Select
               displayEmpty
@@ -1116,6 +1109,7 @@ const DataTable: React.FC<DataTableProps> = ({
               <MenuItem value="pdf">PDF</MenuItem>
             </Select>
           </FormControl>
+
           <CustomAlertDialog
             confirmOpen={confirmOpen}
             handleCancel={handleCancelDownload}
