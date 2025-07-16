@@ -40,26 +40,24 @@ const Customers: React.FC = () => {
 };
 
 
-  const handlePagination = async (pageNumber: number, pageSize: number) => {
-    console.log("value :", pageNumber, pageSize);
-    const offset = pageNumber - 1;
-    try {
-      const response = await dataService.getCustomersPaginated(
-        offset,
-        pageSize
-      );
-      console.log("Paginated response:", response);
-      setCustomData(response?.content?.records || []);
-      //setTotalRecords(response.totalCount || 0);
-      setCustomerGrid((prev) => ({
-        ...prev,
-        currentPage: pageNumber,
-        totalPages: response?.content?.totalPages || 1,
-      }));
-    } catch (error) {
-      console.error("Error fetching paginated customers:", error);
-    }
-  };
+const handlePagination = async (pageNumber: number, pageSize: number) => {
+  console.log("value :", pageNumber, pageSize);
+  const currentPage = pageNumber < 1 ? 1 : pageNumber;
+  const offset = currentPage - 1; // now offset >= 0 always
+
+  try {
+    const response = await dataService.getCustomersPaginated(offset, pageSize);
+    console.log("Paginated response:", response);
+    setCustomData(response?.content?.records || []);
+    setCustomerGrid((prev) => ({
+      ...prev,
+      currentPage: currentPage,
+      totalPages: response?.content?.totalPages || 1,
+    }));
+  } catch (error) {
+    console.error("Error fetching paginated customers:", error);
+  }
+};
 
   const handleFilter = (value: any) => {
     console.log("handleFilter", value);
