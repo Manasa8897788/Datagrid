@@ -9,8 +9,22 @@ import { validateInput } from "./data/validateInput";
 
 const Customers: React.FC = () => {
   const [customData, setCustomData] = useState<Customer[]>([]);
-  const [sortColumn, setSortColumn] = useState<string>("");
-  const [sortDirection, setSortDirection] = useState<"ASC" | "DESC">("ASC");
+
+  const getFilterdData = async (value: any) => {
+    try {
+      const response: any = await dataService.filterCustomers(value);
+      console.log("Sorted response:", response);
+
+      setCustomData(response?.content?.records || []);
+      setCustomerGrid((prev) => ({
+        ...prev,
+        currentPage: customerGrid.currentPage,
+        totalPages: response?.content?.totalPages || 1,
+      }));
+    } catch (error) {
+      console.error("Error filterCustomers:", error);
+    }
+  };
 
   const handleDelete = (val: any) => {
     console.log("handle Delete", val);
@@ -27,40 +41,36 @@ const Customers: React.FC = () => {
   const handleEdit = (value: any) => {
     console.log("handleEdit", value);
   };
-   const handleSort = async (value: any) => {
-  console.log("handleSort:", value);
+  const handleSort = async (value: any) => {
+    console.log("handleSort:", value);
+    getFilterdData(value);
+  };
 
-  try {
-    const response:any = await dataService.filterCustomers(value);
-    console.log("Sorted response:", response);
-    setCustomData(response?.records.content || []);
-  } catch (error) {
-    console.error("Error filterCustomers:", error);
-  }
-};
+  const handlePagination = async (pageNumber: number, pageSize: number) => {
+    console.log("value :", pageNumber, pageSize);
+    const currentPage = pageNumber < 1 ? 1 : pageNumber;
+    const offset = currentPage - 1; // now offset >= 0 always
 
-
-const handlePagination = async (pageNumber: number, pageSize: number) => {
-  console.log("value :", pageNumber, pageSize);
-  const currentPage = pageNumber < 1 ? 1 : pageNumber;
-  const offset = currentPage - 1; // now offset >= 0 always
-
-  try {
-    const response = await dataService.getCustomersPaginated(offset, pageSize);
-    console.log("Paginated response:", response);
-    setCustomData(response?.content?.records || []);
-    setCustomerGrid((prev) => ({
-      ...prev,
-      currentPage: currentPage,
-      totalPages: response?.content?.totalPages || 1,
-    }));
-  } catch (error) {
-    console.error("Error fetching paginated customers:", error);
-  }
-};
+    try {
+      const response = await dataService.getCustomersPaginated(
+        offset,
+        pageSize
+      );
+      console.log("Paginated response:", response);
+      setCustomData(response?.content?.records || []);
+      setCustomerGrid((prev) => ({
+        ...prev,
+        currentPage: currentPage,
+        totalPages: response?.content?.totalPages || 1,
+      }));
+    } catch (error) {
+      console.error("Error fetching paginated customers:", error);
+    }
+  };
 
   const handleFilter = (value: any) => {
     console.log("handleFilter", value);
+    getFilterdData(value);
   };
 
   const handleSelect = () => {};
