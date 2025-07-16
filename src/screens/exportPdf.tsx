@@ -8,6 +8,7 @@ export const exportToPDF = (
 ) => {
   const doc = new jsPDF("landscape", "mm", "a4");
 
+  const pageWidth = doc.internal.pageSize.getWidth();
   const tableColumnHeaders = columns.map(col => col.name);
   const tableRows = data.map(row =>
     columns.map(col => {
@@ -37,7 +38,7 @@ export const exportToPDF = (
       columns.map((col, index) => [
         index,
         {
-          cellWidth: 'wrap', 
+          cellWidth: 'auto', 
           minCellWidth: 20,
           maxCellWidth: 50
         }
@@ -45,14 +46,17 @@ export const exportToPDF = (
     ),
     margin: { top: 20, bottom: 10, left: 5, right: 5 },
     startY: 30,
-    tableWidth: 'wrap', 
-    horizontalPageBreak: true, 
+    tableWidth: 'auto',
+    horizontalPageBreak: true,
     showHead: 'everyPage',
-    didDrawPage: (data) => {
-      doc.setFontSize(11);
-      doc.text("Exported Data Table", data.settings.margin.left, 15);
-    },
     pageBreak: 'auto',
+    didDrawPage: (data) => {
+      const title = "Exported Data Table";
+      doc.setFontSize(11);
+      const textWidth = doc.getTextWidth(title);
+      const centerX = (pageWidth - textWidth) / 2;
+      doc.text(title, centerX, 15); 
+    },
   });
 
   doc.save(`${filename}.pdf`);
