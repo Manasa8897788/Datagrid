@@ -36,6 +36,7 @@ interface EndPoint {
 interface CallBacks {
   onSelect?: (row: any) => void;
   onDelete?: (row: any) => void;
+  onSearch?: (key: any) => void;
   onRowView?: (key: any) => void;
   onRowEdit?: (key: any) => void;
   onRowDelete?: (key: any) => void;

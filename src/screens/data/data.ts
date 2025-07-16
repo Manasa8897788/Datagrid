@@ -26,6 +26,10 @@ const handleSort = (key: any) => {
   console.log("Sorting by key:", key);
 };
 
+const handleSearch = (key: any) => {
+  console.log("Searching with key:", key);
+};
+
 const handleClearSort = (key: any) => {
   console.log("Clear sort for key:", key);
 };
@@ -247,6 +251,7 @@ export const customerGrid: GridMaster = {
   callBacks: {
     onSelect: handleSelect,
     onDelete: handleDelete,
+    onSearch: handleSearch,
     onRowView: handleRowView,
     onRowEdit: handleRowEdit,
     onRowDelete: handleRowDelete,

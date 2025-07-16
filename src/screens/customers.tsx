@@ -41,6 +41,11 @@ const Customers: React.FC = () => {
   const handleEdit = (value: any) => {
     console.log("handleEdit", value);
   };
+
+  const handleSearch = (value: any) => {
+    console.log("handleSearch", value);
+    getFilterdData(value);
+  };
   const handleSort = async (value: any) => {
     console.log("handleSort:", value);
     getFilterdData(value);
@@ -86,6 +91,7 @@ const Customers: React.FC = () => {
     callBacks: {
       onSelect: handleSelect,
       onDelete: handleDelete,
+      onSearch: handleSearch,
       onRowView: handleView,
       onRowEdit: handleEdit,
       onRowDelete: handleDeleteCell,
