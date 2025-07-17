@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Box } from "@mui/material";
+import { Box, Typography } from "@mui/material";
 import DataTable from "../screens/dataGrid";
 import dataService from "../services/dataService";
 import { customerGrid as customerGridDefault } from "../screens/data/data";
@@ -9,7 +9,12 @@ import { validateInput } from "./data/validateInput";
 import { exportToExcel } from "./excelExport";
 import { exportToPDF } from "./exportPdf";
 
-const Customers: React.FC = () => {
+interface CustomersProps {
+}
+
+const Customers: React.FC<CustomersProps> = () => {
+  const [statusMessage, setStatusMessage] = useState<string>("");
+
   const [customData, setCustomData] = useState<Customer[]>([]);
 
   const getFilterdData = async (value: any) => {
@@ -97,14 +102,14 @@ const Customers: React.FC = () => {
     console.log("handleFilter", value);
     getFilterdData(value);
   };
-    const handleClearAll = async () => {
-  fetchData(); 
-};
+  const handleClearAll = async () => {
+    fetchData();
+  };
 
-  const handleSelect = () => {};
-  const handleClearSort = () => {};
-  const handleClearFilter = () => {};
-  const handleColumnSort = () => {};
+  const handleSelect = () => { };
+  const handleClearSort = () => { };
+  const handleClearFilter = () => { };
+  const handleColumnSort = () => { };
 
   const handleDownload = async (format: "xlsx" | "pdf") => {
     try {
@@ -156,26 +161,26 @@ const Customers: React.FC = () => {
     },
   });
 
-   const fetchData = async () => {
-      try {
-        const response = await dataService.getCustomersPaginated(0, 5);
-        console.log("PPPPaginated response:", response);
-        console.log("PPData", response?.content?.records);
-        setCustomData(response?.content?.records || []);
-        //setTotalRecords(response.totalCount || 0);
-        setCustomerGrid((prev) => ({
-          ...prev,
-          currentPage: 1,
-          totalPages: response?.content?.totalPages || 1,
-        }));
-      } catch (error) {
-        console.error("Error fetching paginated customers:", error);
-      }
-    };
+  const fetchData = async () => {
+    try {
+      const response = await dataService.getCustomersPaginated(0, 5);
+      console.log("PPPPaginated response:", response);
+      console.log("PPData", response?.content?.records);
+      setCustomData(response?.content?.records || []);
+      //setTotalRecords(response.totalCount || 0);
+      setCustomerGrid((prev) => ({
+        ...prev,
+        currentPage: 1,
+        totalPages: response?.content?.totalPages || 1,
+      }));
+    } catch (error) {
+      console.error("Error fetching paginated customers:", error);
+    }
+  };
 
-useEffect(() => {
-  fetchData();
-}, []);
+  useEffect(() => {
+    fetchData();
+  }, []);
 
 
 
@@ -192,7 +197,21 @@ useEffect(() => {
         // borderRadius: ,
       }}
     >
-      <DataTable data={customData}>{customerGrid}</DataTable>
+      <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
+        {statusMessage && (
+          <Typography variant="body2" color="text.secondary">
+            {statusMessage}
+          </Typography>
+        )}
+      </Box>
+
+      <DataTable
+        data={customData}
+        gridMaster={customerGrid}
+        onStatusMessageChange={setStatusMessage}
+      >
+        {customerGrid}
+      </DataTable>
     </Box>
   );
 };

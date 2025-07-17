@@ -58,6 +58,8 @@ interface DataTableProps {
   data: any[];
   gridMaster?: GridMaster;
   children: GridMaster;
+    onStatusMessageChange?: (message: string) => void;
+
 }
 
 const getSearchableFields = (cols: GridColumns[]): string[] => {
@@ -68,6 +70,7 @@ const DataTable: React.FC<DataTableProps> = ({
   data,
   gridMaster,
   children,
+  onStatusMessageChange,
 }) => {
   const gridMasterObj = gridMaster || children;
   const {
@@ -263,6 +266,54 @@ const DataTable: React.FC<DataTableProps> = ({
 
     setPage(1);
   }, [searchText, data]);
+    function getSortMessage(columns: string[], direction: string | null) {
+    if (!columns?.length || !direction) return "";
+    return `Sorted by ${columns.join(", ")} (${direction.toUpperCase()})`;
+  }
+
+  function getFilterMessage(
+    enums: FilterCriteria[] | any[],
+    ranges: RangeCriteria[] | any[]
+  ) {
+    const parts: string[] = [];
+
+    enums?.forEach((e: any) => {
+      if (e.values?.length) {
+        const field = capitalize(e.fieldCode);
+        const vals = e.values.map(capitalize).join(", ");
+        parts.push(`${field}: ${vals}`);
+      }
+    });
+
+    ranges?.forEach((r: any) => {
+      const field = capitalize(r.field);
+      const from = formatValue(r.from);
+      const to = formatValue(r.to);
+      parts.push(`${field}: ${from} – ${to}`);
+    });
+
+    return parts.length ? `Filtered by ${parts.join("; ")}` : "";
+  }
+
+  function capitalize(str: string) {
+    return str[0]?.toUpperCase() + str.slice(1).toLowerCase();
+  }
+
+  function formatValue(val: any) {
+    if (!val) return "";
+    const d = new Date(val);
+    return isNaN(d.getTime()) ? String(val) : d.toLocaleDateString();
+  }
+  useEffect(() => {
+    const sortMsg = getSortMessage(selectedColumns, sortType);
+    const filterMsg = getFilterMessage(selectedEnums, selectedRanges);
+    const combined = [sortMsg, filterMsg].filter(Boolean).join(" • ");
+    if (onStatusMessageChange) {
+      onStatusMessageChange(combined);
+    }
+  }, [selectedColumns, sortType, selectedEnums, selectedRanges]);
+
+
 
   const handleChangePage = (
     event: React.ChangeEvent<unknown>,
