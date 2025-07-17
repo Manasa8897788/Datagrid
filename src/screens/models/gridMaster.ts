@@ -52,4 +52,6 @@ interface CallBacks {
   onDownload?: (key: any) => void;
   onPagination?: (key: any) => void;
   onClearAll?: (key: any) => void;
+  onColumnSearch?: (key: any) => void;
+
 }

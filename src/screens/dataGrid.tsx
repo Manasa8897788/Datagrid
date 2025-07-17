@@ -25,6 +25,7 @@ import {
   SelectChangeEvent,
   Button,
   Chip,
+  InputAdornment,
 } from "@mui/material";
 import {
   Search as SearchIcon,
@@ -39,6 +40,8 @@ import {
   MoreVert as MoreVertIcon,
   ArrowDownward as ArrowDownwardIcon,
   ArrowUpward as ArrowUpwardIcon,
+  Close,
+  Search,
 } from "@mui/icons-material";
 import { GridMaster } from "./models/gridMaster";
 import { GridColumns } from "./models/gridColums";
@@ -99,6 +102,44 @@ const DataTable: React.FC<DataTableProps> = ({
   const [statusMessage, setStatusMessage] = useState<string>("");
   const [datas, setData] = useState<any[]>([]);
   const [fullData, setFullData] = useState<any[]>([]);
+  const [searchOpenCols, setSearchOpenCols] = useState<{
+    [key: string]: boolean;
+  }>({});
+  const [searchValues, setSearchValues] = useState<{ [key: string]: string }>(
+    {}
+  );
+
+
+  const handleToggleSearch = (colCode: string) => {
+  setSearchOpenCols((prev) => {
+    const newState: { [key: string]: boolean } = {};
+
+    Object.keys(prev).forEach((key) => {
+      newState[key] = false;
+    });
+
+    return {
+      ...newState,
+      [colCode]: !prev[colCode],
+    };
+  });
+
+  setSearchValues((prev) => {
+    // Clear the value only if we're closing the current search box
+    const isCurrentlyOpen = searchOpenCols[colCode];
+    return {
+      ...prev,
+      [colCode]: isCurrentlyOpen ? "" : prev[colCode],
+    };
+  });
+};
+
+  const handleSearchChange = (colCode: string, value: string) => {
+    setSearchValues((prev) => ({
+      ...prev,
+      [colCode]: value,
+    }));
+  };
 
   const handleRequestSort = (property: string) => {
     const isAsc = orderBy === property && order === "asc";
@@ -999,20 +1040,43 @@ const DataTable: React.FC<DataTableProps> = ({
                     .map((col) => (
                       <TableCell
                         key={col.code}
-                        sx={{ borderBottom: "none", py: 3 }}
+                        sx={{
+                          borderBottom: "none",
+                          py: 3,
+                          position: "relative", // required for absolute child
+                        }}
                       >
-                        {col.sortable ? (
-                          <TableSortLabel
-                            active={orderBy === col.code}
-                            direction={orderBy === col.code ? order : "asc"}
-                            onClick={() => handleRequestSort(col.code)}
-                            hideSortIcon={false}
-                            sx={{
-                              "& .MuiTableSortLabel-icon": {
-                                opacity: 1,
-                              },
-                            }}
-                          >
+                        <Box display="flex" alignItems="center" gap={1}>
+                          {col.searchReqd && !searchOpenCols[col.code] && (
+                            <IconButton
+                              size="small"
+                              onClick={() => handleToggleSearch(col.code)}
+                              sx={{ p: 0.5 }}
+                            >
+                              <Search fontSize="small" />
+                            </IconButton>
+                          )}
+                          {col.sortable ? (
+                            <TableSortLabel
+                              active={orderBy === col.code}
+                              direction={orderBy === col.code ? order : "asc"}
+                              onClick={() => handleRequestSort(col.code)}
+                              hideSortIcon={false}
+                              sx={{
+                                "& .MuiTableSortLabel-icon": {
+                                  opacity: 1,
+                                },
+                              }}
+                            >
+                              <Typography
+                                variant="body2"
+                                fontWeight={600}
+                                color="text.primary"
+                              >
+                                {col.title}
+                              </Typography>
+                            </TableSortLabel>
+                          ) : (
                             <Typography
                               variant="body2"
                               fontWeight={600}
@@ -1020,15 +1084,58 @@ const DataTable: React.FC<DataTableProps> = ({
                             >
                               {col.title}
                             </Typography>
-                          </TableSortLabel>
-                        ) : (
-                          <Typography
-                            variant="body2"
-                            fontWeight={600}
-                            color="text.primary"
-                          >
-                            {col.title}
-                          </Typography>
+                          )}
+                        </Box>
+
+                        {col.searchReqd && searchOpenCols[col.code] && (
+                          <TextField
+                            size="small"
+                            autoFocus
+                            placeholder={`Search ${col.title}`}
+                            value={searchValues[col.code] || ""}
+                            onChange={(e) =>
+                              handleSearchChange(col.code, e.target.value)
+                            }
+                            onKeyDown={(e: any) => {
+                              if (
+                                e.key === "Enter" &&
+                                callBacks.onColumnSearch
+                              ) {
+                                callBacks.onColumnSearch({
+                                  column: col.code,
+                                  searchText: e.target.value,
+                                });
+                              }
+                            }}
+                            InputProps={{
+                              startAdornment: (
+                                <InputAdornment position="start">
+                                  <Search fontSize="small" />
+                                </InputAdornment>
+                              ),
+                              endAdornment: (
+                                <InputAdornment position="end">
+                                  <IconButton
+                                    size="small"
+                                    onClick={() => handleToggleSearch(col.code)}
+                                  >
+                                    <Close fontSize="small" />
+                                  </IconButton>
+                                </InputAdornment>
+                              ),
+                            }}
+                            sx={{
+                              position: "absolute",
+                              top: "60%",
+                              left: 0,
+                              width: "200px",
+                              zIndex: 10,
+                              mt: 1,
+                              bgcolor: "#fff",
+                              boxShadow: 3,
+                              borderRadius: 1,
+                            }}
+                          />
                         )}
                       </TableCell>
                     ))}

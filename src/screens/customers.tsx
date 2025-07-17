@@ -71,6 +71,39 @@ const Customers: React.FC<CustomersProps> = () => {
     getFilterdData(value);
   };
 
+  const handleColumnSearch = async (value: { column: string; searchText: string }) => {
+  const { column, searchText } = value;
+  console.log("handleColumnSearch", value);
+
+  setCustomerGrid((prev) => ({
+    ...prev,
+    pageState: PageState.LOADING,
+  }));
+
+  try {
+    const response = await dataService.fetchCustomersByColumn(column, searchText);
+    const records = response?.content;
+
+    setCustomData(records);
+    console.log("Column search records:", records);
+    console.log("Column search response:", response);
+    setCustomerGrid((prev) => ({
+      ...prev,
+      currentPage: 1,
+      totalPages: response?.content?.totalPages || 1,
+      pageState: PageState.SUCCESS,
+    }));
+  } catch (error) {
+    setCustomData([]);
+    setCustomerGrid((prev) => ({
+      ...prev,
+      pageState: PageState.ERROR,
+    }));
+    console.error("Error fetching customers by column search:", error);
+  }
+};
+
+
   const handlePagination = async (value: any) => {
     const {
       page: pageNumber,
@@ -177,6 +210,7 @@ const Customers: React.FC<CustomersProps> = () => {
       onDownload: handleDownload,
       onPagination: handlePagination,
       onClearAll: handleClearAll,
+      onColumnSearch: handleColumnSearch,
     },
   });
 

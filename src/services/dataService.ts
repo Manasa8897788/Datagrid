@@ -89,6 +89,28 @@ const dataService = {
       throw error;
     }
   },
+
+
+  async fetchCustomersByColumn(columnName: string, searchValue: string) {
+    try {
+      const response = await axios.get(
+        `${API_BASE_URL}/customer/master/get/records/by/param`,
+        {
+          params: {
+            paramName: columnName,
+            paramValue: searchValue,
+          },
+        }
+      );
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching customers:", error);
+      throw error;
+    }
+  }
+
+
 };
+
 
 export default dataService;
