@@ -24,6 +24,7 @@ import {
   Drawer,
   SelectChangeEvent,
   Button,
+  CircularProgress,
 } from "@mui/material";
 import {
   Search as SearchIcon,
@@ -52,14 +53,15 @@ import RowsPerPageSelector from "./RowsPerPageSelector";
 import { FilterCriteria } from "./models/searchCriteria";
 import { RangeCriteria } from "./models/rangeCriteria";
 import { GenericFilterRequest } from "./models/genericFilterRequest";
-import ClearIcon from '@mui/icons-material/Clear';
+import ClearIcon from "@mui/icons-material/Clear";
+import { PageState } from "./models/pageState";
+import LoadingState from "./loadingSkeleton";
 
 interface DataTableProps {
   data: any[];
   gridMaster?: GridMaster;
   children: GridMaster;
   onStatusMessageChange?: (message: string) => void;
-
 }
 
 const getSearchableFields = (cols: GridColumns[]): string[] => {
@@ -78,6 +80,7 @@ const DataTable: React.FC<DataTableProps> = ({
     totalPages: serverPages,
     currentPage,
     serverSidePagination,
+    pageState,
   } = gridMaster || children;
   const [selectedEnums, setSelectedEnums] = useState<FilterCriteria[] | any>(
     []
@@ -132,7 +135,7 @@ const DataTable: React.FC<DataTableProps> = ({
     );
   };
 
-  // console.log("PPcurrentPage", currentPage, serverPages);
+  console.log("&&&pageState", pageState);
 
   const [searchText, setSearchText] = useState("");
   const [filteredData, setFilteredData] = useState(data);
@@ -163,10 +166,10 @@ const DataTable: React.FC<DataTableProps> = ({
       filters:
         selectedEnums.length > 0
           ? selectedEnums.map((each: any) => ({
-            field: each.fieldCode,
-            values: each.values,
-            type: each.type,
-          }))
+              field: each.fieldCode,
+              values: each.values,
+              type: each.type,
+            }))
           : null,
 
       // [
@@ -312,8 +315,6 @@ const DataTable: React.FC<DataTableProps> = ({
       onStatusMessageChange(combined);
     }
   }, [selectedColumns, sortType, selectedEnums, selectedRanges]);
-
-
 
   const handleChangePage = (
     event: React.ChangeEvent<unknown>,
@@ -478,6 +479,12 @@ const DataTable: React.FC<DataTableProps> = ({
     setConfirmOpen(false);
   };
 
+  const isError = searchText.length > 0 && searchText.length < 3;
+
+  if (pageState === PageState.LOADING) {
+    return <LoadingState />;
+  }
+
   return (
     <Box sx={{ p: 1 }}>
       {/* Header (commented out as per original) */}
@@ -527,6 +534,8 @@ const DataTable: React.FC<DataTableProps> = ({
               variant="outlined"
               size="small"
               value={searchText}
+              error={isError}
+              helperText={isError ? "Minimum 3 characters required" : ""}
               onChange={(e) => {
                 setSearchText(e.target.value);
               }}
@@ -565,7 +574,13 @@ const DataTable: React.FC<DataTableProps> = ({
           )}
 
           {/* Sort Button */}
-          <Box sx={{ position: "relative", display: "inline-block", flexShrink: 0 }}>
+          <Box
+            sx={{
+              position: "relative",
+              display: "inline-block",
+              flexShrink: 0,
+            }}
+          >
             <ClickAwayListener onClickAway={() => setShowSort(false)}>
               <Box>
                 <Box
@@ -583,7 +598,6 @@ const DataTable: React.FC<DataTableProps> = ({
                     minWidth: "fit-content",
                     whiteSpace: "nowrap",
                   }}
-
                 >
                   <svg
                     width="24"
@@ -597,7 +611,11 @@ const DataTable: React.FC<DataTableProps> = ({
                       fill="#141414"
                     />
                   </svg>
-                  <Typography variant="body2" color="text.secondary" sx={{ display: { xs: "none", sm: "block" } }}>
+                  <Typography
+                    variant="body2"
+                    color="text.secondary"
+                    sx={{ display: { xs: "none", sm: "block" } }}
+                  >
                     Sort By
                   </Typography>
                 </Box>
@@ -630,7 +648,13 @@ const DataTable: React.FC<DataTableProps> = ({
           </Box>
 
           {/* Filter Button */}
-          <Box sx={{ position: "relative", display: "inline-block", flexShrink: 0 }}>
+          <Box
+            sx={{
+              position: "relative",
+              display: "inline-block",
+              flexShrink: 0,
+            }}
+          >
             <Box
               onClick={() => setShowFilter((p) => !p)}
               sx={{
@@ -659,7 +683,11 @@ const DataTable: React.FC<DataTableProps> = ({
                   fill="#141414"
                 />
               </svg>
-              <Typography variant="body2" color="text.secondary" sx={{ display: { xs: "none", sm: "block" } }}>
+              <Typography
+                variant="body2"
+                color="text.secondary"
+                sx={{ display: { xs: "none", sm: "block" } }}
+              >
                 Filters
               </Typography>
             </Box>
@@ -706,7 +734,7 @@ const DataTable: React.FC<DataTableProps> = ({
             }}
             sx={{
               height: 40,
-              borderRadius: '999px',
+              borderRadius: "999px",
               bgcolor: "#edf0f5",
               color: "#9c27b0",
               textTransform: "none",
@@ -721,8 +749,6 @@ const DataTable: React.FC<DataTableProps> = ({
                 backgroundColor: "#e0e0e0",
               },
             }}
-
-
             startIcon={
               <Box
                 sx={{
@@ -821,10 +847,7 @@ const DataTable: React.FC<DataTableProps> = ({
               </svg>
             </ToggleButton>
           </ToggleButtonGroup>
-
         </Box>
-
-
       </Box>
       {view === "list" && (
         <Paper
@@ -840,7 +863,7 @@ const DataTable: React.FC<DataTableProps> = ({
                     border: "none",
                   }}
                 >
-                  <TableCell padding="checkbox">
+                  <TableCell padding="checkbox" sx={{ borderBottom: "none" }}>
                     <Checkbox
                       color="primary"
                       indeterminate={
@@ -856,7 +879,7 @@ const DataTable: React.FC<DataTableProps> = ({
                   </TableCell>
 
                   {gridMasterObj.indexReqd && (
-                    <TableCell>
+                    <TableCell sx={{ borderBottom: "none" }}>
                       <Typography
                         variant="body2"
                         fontWeight={600}
@@ -1108,8 +1131,8 @@ const DataTable: React.FC<DataTableProps> = ({
                   );
                 })}
 
-                {paginatedData.length === 0 && (
-                  <TableRow>
+                {pageState === PageState.ERROR && (
+                  <TableRow sx={{ height: "25vh" }}>
                     <TableCell
                       colSpan={
                         (gridMasterObj.indexReqd ? 1 : 0) +
@@ -1294,11 +1317,18 @@ const DataTable: React.FC<DataTableProps> = ({
         </div>
       )}
 
-      {/* {paginatedData.length === 0 && (
-        <Box sx={{ width: "100%", textAlign: "center", py: 5 }}>
-          <Typography variant="body2" color="text.secondary">
-            No records found
-          </Typography>
+      {/* {pageState === PageState.LOADING && (
+        <Box
+          sx={{
+            width: "100%",
+            height: "25vh",
+            justifyContent: "center",
+            display: "flex",
+            textAlign: "center",
+            py: 5,
+          }}
+        >
+          <CircularProgress />
         </Box>
       )} */}
 

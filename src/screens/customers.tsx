@@ -8,9 +8,9 @@ import { GridMaster } from "./models/gridMaster";
 import { validateInput } from "./data/validateInput";
 import { exportToExcel } from "./excelExport";
 import { exportToPDF } from "./exportPdf";
+import { PageState } from "./models/pageState";
 
-interface CustomersProps {
-}
+interface CustomersProps {}
 
 const Customers: React.FC<CustomersProps> = () => {
   const [statusMessage, setStatusMessage] = useState<string>("");
@@ -18,19 +18,31 @@ const Customers: React.FC<CustomersProps> = () => {
   const [customData, setCustomData] = useState<Customer[]>([]);
 
   const getFilterdData = async (value: any) => {
+    setCustomerGrid((prev) => ({
+      ...prev,
+      pageState: PageState.LOADING,
+    }));
+
     try {
       const response: any = await dataService.filterCustomers(value);
       console.log("Sorted response:", response);
 
       setCustomData(response?.content?.records || []);
+
       setCustomerGrid((prev) => ({
         ...prev,
         // currentPage: value.pageNumber + 1 || customerGrid.currentPage,
         currentPage: value.pageNumber + 1,
         currentPageSize: value.pageSize || customerGrid.currentPageSize,
         totalPages: response?.content?.totalPages || 1,
+        pageState: PageState.SUCCESS,
       }));
     } catch (error) {
+      setCustomData([]);
+      setCustomerGrid((prev) => ({
+        ...prev,
+        pageState: PageState.ERROR,
+      }));
       console.error("Error filterCustomers:", error);
     }
   };
@@ -68,7 +80,7 @@ const Customers: React.FC<CustomersProps> = () => {
       filteredData,
     } = value;
     const currentPage = pageNumber < 1 ? 1 : pageNumber;
-    const offset = currentPage - 1; // now offset >= 0 always
+    const offset = currentPage - 1;
 
     if (isFilter) {
       console.log("filteredData", filteredData);
@@ -78,6 +90,10 @@ const Customers: React.FC<CustomersProps> = () => {
       });
       console.log("filter");
     } else {
+      setCustomerGrid((prev) => ({
+        ...prev,
+        pageState: PageState.LOADING,
+      }));
       try {
         const response = await dataService.getCustomersPaginated(
           offset,
@@ -89,8 +105,13 @@ const Customers: React.FC<CustomersProps> = () => {
           ...prev,
           currentPage: currentPage,
           totalPages: response?.content?.totalPages || 1,
+          pageState: PageState.SUCCESS,
         }));
       } catch (error) {
+        setCustomerGrid((prev) => ({
+          ...prev,
+          pageState: PageState.ERROR,
+        }));
         setCustomData([]);
         console.error("Error fetching paginated customers:", error);
       }
@@ -106,10 +127,10 @@ const Customers: React.FC<CustomersProps> = () => {
     fetchData();
   };
 
-  const handleSelect = () => { };
-  const handleClearSort = () => { };
-  const handleClearFilter = () => { };
-  const handleColumnSort = () => { };
+  const handleSelect = () => {};
+  const handleClearSort = () => {};
+  const handleClearFilter = () => {};
+  const handleColumnSort = () => {};
 
   const handleDownload = async (format: "xlsx" | "pdf") => {
     try {
@@ -157,7 +178,6 @@ const Customers: React.FC<CustomersProps> = () => {
       onDownload: handleDownload,
       onPagination: handlePagination,
       onClearAll: handleClearAll,
-
     },
   });
 
@@ -181,9 +201,6 @@ const Customers: React.FC<CustomersProps> = () => {
   useEffect(() => {
     fetchData();
   }, []);
-
-
-
 
   return (
     <Box

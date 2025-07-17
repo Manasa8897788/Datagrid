@@ -1,5 +1,6 @@
 import { GridColumns } from "./gridColums";
 import { GridPagination } from "./gridPagination";
+import { PageState } from "./pageState";
 
 export interface GridMaster {
   id: number;
@@ -25,6 +26,7 @@ export interface GridMaster {
   currentPage?: number;
   currentPageSize?: number;
   totalPages?: number;
+  pageState?: PageState;
 }
 
 interface EndPoint {
@@ -50,5 +52,4 @@ interface CallBacks {
   onDownload?: (key: any) => void;
   onPagination?: (key: any) => void;
   onClearAll?: (key: any) => void;
-
 }

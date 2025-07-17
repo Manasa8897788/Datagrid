@@ -1,6 +1,7 @@
 import dataService from "../../services/dataService";
 import { DataType } from "../models/dataType";
 import { GridMaster } from "../models/gridMaster";
+import { PageState } from "../models/pageState";
 
 const handleSelect = (row: any) => {
   console.log("Selected row:", row);
@@ -266,6 +267,7 @@ export const customerGrid: GridMaster = {
   },
   serverSide: true,
   serverSidePagination: true,
+  pageState: PageState.IDLE,
 
   gridActions: {
     ep_data: { uri: "/customer/get", method: "GET" },
