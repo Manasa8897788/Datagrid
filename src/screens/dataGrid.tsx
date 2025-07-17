@@ -23,6 +23,7 @@ import {
   TableSortLabel,
   Drawer,
   SelectChangeEvent,
+  Button,
 } from "@mui/material";
 import {
   Search as SearchIcon,
@@ -51,6 +52,7 @@ import RowsPerPageSelector from "./RowsPerPageSelector";
 import { FilterCriteria } from "./models/searchCriteria";
 import { RangeCriteria } from "./models/rangeCriteria";
 import { GenericFilterRequest } from "./models/genericFilterRequest";
+import ClearIcon from '@mui/icons-material/Clear';
 
 interface DataTableProps {
   data: any[];
@@ -640,6 +642,48 @@ const DataTable: React.FC<DataTableProps> = ({
               </Box>
             )}
           </Box>
+           <Button
+            variant="outlined"
+            onClick={() => {
+              setServiceData({} as GenericFilterRequest);
+              setSelectedEnums([]);
+              setSelectedRanges([]);
+              setSearchText("");
+              setSelectedColumns([]);
+              setSortType("asc");
+              
+              callBacks.onClearAll?.({});
+            }}
+            sx={{
+              borderRadius: "999px",
+              bgcolor: "#edf0f5",
+              color: "#9c27b0", 
+              textTransform: "none",
+              px: 2,
+              py: 1,
+              border: "none",
+              "&:hover": {
+                backgroundColor: "#e0e0e0",
+              },
+            }}
+            startIcon={
+              <Box
+                sx={{
+                  border: "2px solid #9c27b0",
+                  borderRadius: "50%",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  width: 24,
+                  height: 24,
+                }}
+              >
+                <ClearIcon fontSize="small" sx={{ color: "#9c27b0" }} />
+              </Box>
+            }
+          >
+            Clear All
+          </Button>
         </Box>
 
         <Box sx={{ display: "flex", alignItems: "center", gap: 2, mr: 6 }}>
@@ -718,7 +762,10 @@ const DataTable: React.FC<DataTableProps> = ({
               </svg>
             </ToggleButton>
           </ToggleButtonGroup>
+          
         </Box>
+
+       
       </Box>
       {view === "list" && (
         <Paper
@@ -1292,8 +1339,8 @@ const DataTable: React.FC<DataTableProps> = ({
             }}
           >
             <Pagination
-              count={serverPages}
-              page={currentPage || 1}
+             count={serverPages || totalPages}
+              page={currentPage || page}
               onChange={handlePaginationChange}
               variant="outlined"
               shape="rounded"

@@ -51,8 +51,8 @@ export default function SortByData({
   const handleCheckboxChange = (
     column: (typeof customerGrid.gridColumns)[0]
   ) => {
-    const isCurrentlySelected = selectedColumns.some(
-      (col: any) => col.code === column.code
+    const isCurrentlySelected = selectedColumns.includes(
+      column.code
     );
 
     if (isCurrentlySelected) {

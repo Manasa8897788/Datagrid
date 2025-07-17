@@ -97,6 +97,9 @@ const Customers: React.FC = () => {
     console.log("handleFilter", value);
     getFilterdData(value);
   };
+    const handleClearAll = async () => {
+  fetchData(); 
+};
 
   const handleSelect = () => {};
   const handleClearSort = () => {};
@@ -148,11 +151,12 @@ const Customers: React.FC = () => {
       onColumnSort: handleColumnSort,
       onDownload: handleDownload,
       onPagination: handlePagination,
+      onClearAll: handleClearAll,
+
     },
   });
 
-  useEffect(() => {
-    const fetchData = async () => {
+   const fetchData = async () => {
       try {
         const response = await dataService.getCustomersPaginated(0, 5);
         console.log("PPPPaginated response:", response);
@@ -169,8 +173,12 @@ const Customers: React.FC = () => {
       }
     };
 
-    fetchData();
-  }, []);
+useEffect(() => {
+  fetchData();
+}, []);
+
+
+
 
   return (
     <Box
