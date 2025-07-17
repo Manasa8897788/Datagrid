@@ -24,7 +24,6 @@ import {
   Drawer,
   SelectChangeEvent,
   Button,
-  CircularProgress,
 } from "@mui/material";
 import {
   Search as SearchIcon,
@@ -54,8 +53,6 @@ import { FilterCriteria } from "./models/searchCriteria";
 import { RangeCriteria } from "./models/rangeCriteria";
 import { GenericFilterRequest } from "./models/genericFilterRequest";
 import ClearIcon from "@mui/icons-material/Clear";
-import { PageState } from "./models/pageState";
-import LoadingState from "./loadingSkeleton";
 
 interface DataTableProps {
   data: any[];
@@ -80,7 +77,6 @@ const DataTable: React.FC<DataTableProps> = ({
     totalPages: serverPages,
     currentPage,
     serverSidePagination,
-    pageState,
   } = gridMaster || children;
   const [selectedEnums, setSelectedEnums] = useState<FilterCriteria[] | any>(
     []
@@ -99,6 +95,9 @@ const DataTable: React.FC<DataTableProps> = ({
   const [drawerData, setDrawerData] = useState<any>(null);
   const [sortType, setSortType] = useState<"asc" | "desc">("asc");
   const [isOnSearchClicked, setIsOnSearchClicked] = useState<boolean>(false);
+  const [statusMessage, setStatusMessage] = useState<string>("");
+  const [datas, setData] = useState<any[]>([]);
+  const [fullData, setFullData] = useState<any[]>([]);
 
   const handleRequestSort = (property: string) => {
     const isAsc = orderBy === property && order === "asc";
@@ -135,7 +134,7 @@ const DataTable: React.FC<DataTableProps> = ({
     );
   };
 
-  console.log("&&&pageState", pageState);
+  // console.log("PPcurrentPage", currentPage, serverPages);
 
   const [searchText, setSearchText] = useState("");
   const [filteredData, setFilteredData] = useState(data);
@@ -313,6 +312,8 @@ const DataTable: React.FC<DataTableProps> = ({
     const combined = [sortMsg, filterMsg].filter(Boolean).join(" • ");
     if (onStatusMessageChange) {
       onStatusMessageChange(combined);
+    } else {
+      setStatusMessage(combined);
     }
   }, [selectedColumns, sortType, selectedEnums, selectedRanges]);
 
@@ -335,14 +336,22 @@ const DataTable: React.FC<DataTableProps> = ({
     newPage: number
   ) => {
     setPage(newPage);
-    if (callBacks.onPagination) {
-      const value = {
-        page: newPage,
-        rowsPerPage: rowsPerPage,
-        filteredData: { ...serviceData, pageNumber: newPage },
-        isFilter: isServiceDataEmpty(serviceData),
-      };
+
+    const value = {
+      page: newPage,
+      rowsPerPage: rowsPerPage,
+      filteredData: { ...serviceData, pageNumber: newPage },
+      isFilter: isServiceDataEmpty(serviceData),
+    };
+
+    if (callBacks?.onPagination) {
       callBacks.onPagination(value);
+    } else {
+      const start = newPage * rowsPerPage;
+      const end = start + rowsPerPage;
+      const paginatedData = fullData.slice(start, end);
+
+      setData(paginatedData);
     }
   };
 
@@ -479,12 +488,6 @@ const DataTable: React.FC<DataTableProps> = ({
     setConfirmOpen(false);
   };
 
-  const isError = searchText.length > 0 && searchText.length < 3;
-
-  if (pageState === PageState.LOADING) {
-    return <LoadingState />;
-  }
-
   return (
     <Box sx={{ p: 1 }}>
       {/* Header (commented out as per original) */}
@@ -534,8 +537,6 @@ const DataTable: React.FC<DataTableProps> = ({
               variant="outlined"
               size="small"
               value={searchText}
-              error={isError}
-              helperText={isError ? "Minimum 3 characters required" : ""}
               onChange={(e) => {
                 setSearchText(e.target.value);
               }}
@@ -849,6 +850,14 @@ const DataTable: React.FC<DataTableProps> = ({
           </ToggleButtonGroup>
         </Box>
       </Box>
+
+      {statusMessage && (
+        <Box sx={{ mb: 2 }}>
+          <Typography variant="body2" color="text.secondary">
+            {statusMessage}
+          </Typography>
+        </Box>
+      )}
       {view === "list" && (
         <Paper
           sx={{ boxShadow: "none", width: "100%", mb: 3, overflow: "hidden" }}
@@ -863,7 +872,7 @@ const DataTable: React.FC<DataTableProps> = ({
                     border: "none",
                   }}
                 >
-                  <TableCell padding="checkbox" sx={{ borderBottom: "none" }}>
+                  <TableCell padding="checkbox">
                     <Checkbox
                       color="primary"
                       indeterminate={
@@ -879,7 +888,7 @@ const DataTable: React.FC<DataTableProps> = ({
                   </TableCell>
 
                   {gridMasterObj.indexReqd && (
-                    <TableCell sx={{ borderBottom: "none" }}>
+                    <TableCell>
                       <Typography
                         variant="body2"
                         fontWeight={600}
@@ -1131,8 +1140,8 @@ const DataTable: React.FC<DataTableProps> = ({
                   );
                 })}
 
-                {pageState === PageState.ERROR && (
-                  <TableRow sx={{ height: "25vh" }}>
+                {paginatedData.length === 0 && (
+                  <TableRow>
                     <TableCell
                       colSpan={
                         (gridMasterObj.indexReqd ? 1 : 0) +
@@ -1317,45 +1326,35 @@ const DataTable: React.FC<DataTableProps> = ({
         </div>
       )}
 
-      {/* {pageState === PageState.LOADING && (
-        <Box
-          sx={{
-            width: "100%",
-            height: "25vh",
-            justifyContent: "center",
-            display: "flex",
-            textAlign: "center",
-            py: 5,
-          }}
-        >
-          <CircularProgress />
+      {/* {paginatedData.length === 0 && (
+        <Box sx={{ width: "100%", textAlign: "center", py: 5 }}>
+          <Typography variant="body2" color="text.secondary">
+            No records found
+          </Typography>
         </Box>
       )} */}
-
-      {/* Footer with pagination and controls */}
       <Box
         sx={{
           display: "flex",
           flexDirection: { xs: "column", sm: "row" },
           justifyContent: "space-between",
-          alignItems: { xs: "stretch", sm: "center" },
-          gap: { xs: 3, sm: 2 },
+          alignItems: "center",
+          gap: 2,
+          flexWrap: "wrap",
           p: 2,
           bgcolor: "background.paper",
-          // borderRadius: 2,
-          // border: "1px solid",
-          // borderColor: "divider",
         }}
       >
-        {/* Left section - Download controls */}
+        {/* Left Section: Download Controls */}
         <Box
           sx={{
             display: "flex",
-            flexDirection: { xs: "column", sm: "row" },
-            alignItems: { xs: "flex-start", sm: "center" },
-            gap: { xs: 1.5, sm: 2 },
+            flexDirection: "row",
             flexWrap: "wrap",
-            order: { xs: 2, sm: 1 },
+            alignItems: "center",
+            gap: 2,
+            justifyContent: { xs: "center", sm: "flex-start" },
+            width: { xs: "100%", sm: "auto" },
           }}
         >
           {selectedRows.length > 0 && (
@@ -1368,23 +1367,23 @@ const DataTable: React.FC<DataTableProps> = ({
             <Typography variant="body2" color="text.secondary">
               Download by
             </Typography>
-
-            <FormControl size="small" sx={{ minWidth: { xs: 120, sm: 150 } }}>
+            <FormControl size="small" sx={{ minWidth: 120 }}>
               <Select
                 displayEmpty
                 value={pendingFormat || exportFormat}
                 onChange={handleExportFormatChange}
                 sx={{ fontSize: "14px" }}
-                renderValue={(selected) => {
-                  if (!selected) {
-                    return (
-                      <Typography variant="body2" color="text.secondary">
-                        Select Format
-                      </Typography>
-                    );
-                  }
-                  return selected === "xlsx" ? "Excel" : "PDF";
-                }}
+                renderValue={(selected) =>
+                  !selected ? (
+                    <Typography variant="body2" color="text.secondary">
+                      Select Format
+                    </Typography>
+                  ) : selected === "xlsx" ? (
+                    "Excel"
+                  ) : (
+                    "PDF"
+                  )
+                }
               >
                 <MenuItem value="xlsx">Excel</MenuItem>
                 <MenuItem value="pdf">PDF</MenuItem>
@@ -1403,21 +1402,22 @@ const DataTable: React.FC<DataTableProps> = ({
                 <strong>{pendingFormat.toUpperCase()}</strong>?
               </>
             }
-            cancelButtonText=" Cancel"
-            confirmButtonText=" Download"
+            cancelButtonText="Cancel"
+            confirmButtonText="Download"
             cancelButtonIcon={<CancelIcon />}
             confirmButtonIcon={<DownloadIcon />}
           />
         </Box>
 
-        {/* Right section - Pagination and rows per page */}
+        {/* Right Section: Pagination and Rows per Page */}
         <Box
           sx={{
             display: "flex",
             flexDirection: { xs: "column", sm: "row" },
-            alignItems: { xs: "stretch", sm: "center" },
-            gap: { xs: 2, sm: 2 },
-            order: { xs: 1, sm: 2 },
+            alignItems: "center",
+            gap: 2,
+            justifyContent: { xs: "center", sm: "flex-end" },
+            width: { xs: "100%", sm: "auto" },
           }}
         >
           {/* Pagination */}
@@ -1425,6 +1425,8 @@ const DataTable: React.FC<DataTableProps> = ({
             sx={{
               display: "flex",
               justifyContent: { xs: "center", sm: "flex-end" },
+              width: "100%",
+              overflowX: "auto",
             }}
           >
             <Pagination
@@ -1445,13 +1447,13 @@ const DataTable: React.FC<DataTableProps> = ({
             />
           </Box>
 
-          {/* Rows per page */}
+          {/* Rows Per Page */}
           <Box
             sx={{
               display: "flex",
               alignItems: "center",
               gap: 1,
-              justifyContent: { xs: "center", sm: "flex-end" },
+              justifyContent: "flex-end",
               flexShrink: 0,
             }}
           >

@@ -13,7 +13,6 @@ import { PageState } from "./models/pageState";
 interface CustomersProps {}
 
 const Customers: React.FC<CustomersProps> = () => {
-  const [statusMessage, setStatusMessage] = useState<string>("");
 
   const [customData, setCustomData] = useState<Customer[]>([]);
 
@@ -214,18 +213,11 @@ const Customers: React.FC<CustomersProps> = () => {
         // borderRadius: ,
       }}
     >
-      <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
-        {statusMessage && (
-          <Typography variant="body2" color="text.secondary">
-            {statusMessage}
-          </Typography>
-        )}
-      </Box>
+      
 
       <DataTable
         data={customData}
         gridMaster={customerGrid}
-        onStatusMessageChange={setStatusMessage}
       >
         {customerGrid}
       </DataTable>
