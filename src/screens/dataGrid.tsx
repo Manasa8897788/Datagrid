@@ -24,6 +24,7 @@ import {
   Drawer,
   SelectChangeEvent,
   Button,
+  Chip,
 } from "@mui/material";
 import {
   Search as SearchIcon,
@@ -165,10 +166,10 @@ const DataTable: React.FC<DataTableProps> = ({
       filters:
         selectedEnums.length > 0
           ? selectedEnums.map((each: any) => ({
-              field: each.fieldCode,
-              values: each.values,
-              type: each.type,
-            }))
+            field: each.fieldCode,
+            values: each.values,
+            type: each.type,
+          }))
           : null,
 
       // [
@@ -851,13 +852,83 @@ const DataTable: React.FC<DataTableProps> = ({
         </Box>
       </Box>
 
-      {statusMessage && (
-        <Box sx={{ mb: 2 }}>
-          <Typography variant="body2" color="text.secondary">
-            {statusMessage}
-          </Typography>
+      {(selectedColumns?.length > 0 && sortType) || selectedEnums?.some((e: { values: string | any[]; }) => e.values?.length) || selectedRanges?.some(r => r.from || r.to) ? (
+        <Box sx={{ mb: 2, display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
+          {selectedColumns?.length > 0 && sortType && (
+            <>
+              <Typography variant="body2" sx={{ color: 'text.secondary', mr: 1 }}>
+                Sorted by
+              </Typography>
+              <Chip
+                label={selectedColumns.join(', ')}
+                size="small"
+                sx={{
+                  backgroundColor: '#f5f5f5',
+                  border: '1px solid #ddd',
+                  '& .MuiChip-label': {
+                    fontSize: '0.875rem',
+                    color: '#333'
+                  }
+                }}
+              />
+              <Chip
+                label={sortType.toUpperCase()}
+                size="small"
+                sx={{
+                  backgroundColor: '#f5f5f5',
+                  border: '1px solid #ddd',
+                  '& .MuiChip-label': {
+                    fontSize: '0.875rem',
+                    color: '#333'
+                  }
+                }}
+              />
+            </>
+          )}
+
+          {/* Filter chips */}
+          {(selectedEnums?.some((e: { values: string | any[]; }) => e.values?.length) || selectedRanges?.some(r => r.from || r.to)) && (
+            <Typography variant="body2" sx={{ color: 'text.secondary', mr: 1 }}>
+              Filtered by
+            </Typography>
+          )}
+          {selectedEnums?.map((enumFilter: any, index: any) => (
+            enumFilter.values?.length > 0 && (
+              <Chip
+                key={`enum-${index}`}
+                label={`${capitalize(enumFilter.fieldCode)}: ${enumFilter.values.map(capitalize).join(', ')}`}
+                size="small"
+                sx={{
+                  backgroundColor: '#f5f5f5',
+                  border: '1px solid #ddd',
+                  '& .MuiChip-label': {
+                    fontSize: '0.875rem',
+                    color: '#333'
+                  }
+                }}
+              />
+            )
+          ))}
+
+          {selectedRanges?.map((rangeFilter, index) => (
+            (rangeFilter.from || rangeFilter.to) && (
+              <Chip
+                key={`range-${index}`}
+                label={`${capitalize(rangeFilter.field)}: ${formatValue(rangeFilter.from)} – ${formatValue(rangeFilter.to)}`}
+                size="small"
+                sx={{
+                  backgroundColor: '#f5f5f5',
+                  border: '1px solid #ddd',
+                  '& .MuiChip-label': {
+                    fontSize: '0.875rem',
+                    color: '#333'
+                  }
+                }}
+              />
+            )
+          ))}
         </Box>
-      )}
+      ) : null}
       {view === "list" && (
         <Paper
           sx={{ boxShadow: "none", width: "100%", mb: 3, overflow: "hidden" }}
