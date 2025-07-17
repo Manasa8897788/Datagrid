@@ -58,7 +58,7 @@ interface DataTableProps {
   data: any[];
   gridMaster?: GridMaster;
   children: GridMaster;
-    onStatusMessageChange?: (message: string) => void;
+  onStatusMessageChange?: (message: string) => void;
 
 }
 
@@ -163,10 +163,10 @@ const DataTable: React.FC<DataTableProps> = ({
       filters:
         selectedEnums.length > 0
           ? selectedEnums.map((each: any) => ({
-              field: each.fieldCode,
-              values: each.values,
-              type: each.type,
-            }))
+            field: each.fieldCode,
+            values: each.values,
+            type: each.type,
+          }))
           : null,
 
       // [
@@ -266,7 +266,7 @@ const DataTable: React.FC<DataTableProps> = ({
 
     setPage(1);
   }, [searchText, data]);
-    function getSortMessage(columns: string[], direction: string | null) {
+  function getSortMessage(columns: string[], direction: string | null) {
     if (!columns?.length || !direction) return "";
     return `Sorted by ${columns.join(", ")} (${direction.toUpperCase()})`;
   }
@@ -492,7 +492,6 @@ const DataTable: React.FC<DataTableProps> = ({
           bgcolor: "background.paper",
           borderRadius: 2,
           borderColor: "divider",
-          flexWrap: "wrap",
           gap: 2,
         }}
       >
@@ -508,17 +507,17 @@ const DataTable: React.FC<DataTableProps> = ({
             gutterBottom
           >
             {gridMasterObj?.title}
-            {/* Data Grid Table Sample */}
           </Typography>
         </Box>
         <Box
           sx={{
             display: "flex",
             alignItems: "center",
-            gap: 2,
+            gap: 1, // Reduced gap from 2 to 1
             flex: 2,
-            flexWrap: "wrap",
+            flexWrap: "nowrap", // Changed from "wrap" to "nowrap"
             width: { xs: "100%", md: "auto" },
+            minWidth: 0, // Allow shrinking
           }}
         >
           {/* Search */}
@@ -528,10 +527,10 @@ const DataTable: React.FC<DataTableProps> = ({
               variant="outlined"
               size="small"
               value={searchText}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+              onChange={(e) => {
                 setSearchText(e.target.value);
               }}
-              onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
+              onKeyDown={(e) => {
                 if (
                   e.key === "Enter" &&
                   searchText.trim().length >= 3 &&
@@ -539,12 +538,6 @@ const DataTable: React.FC<DataTableProps> = ({
                 ) {
                   console.log("Enter pressed", serviceData);
                   setIsOnSearchClicked(true);
-                  // callBacks.onSearch({
-                  //   searchKey: searchText,
-                  //   searchableColumns: searchText ? searchableColumns : null,
-                  //   pageNumber: page - 1,
-                  //   pageSize: rowsPerPage,
-                  // });
                 }
               }}
               InputProps={{
@@ -560,7 +553,9 @@ const DataTable: React.FC<DataTableProps> = ({
                 },
               }}
               sx={{
-                width: 350,
+                width: { xs: 200, sm: 250, md: 300 }, // Responsive width
+                minWidth: 150, // Minimum width
+                flexShrink: 1, // Allow shrinking
                 "& .MuiOutlinedInput-root": {
                   borderRadius: 2,
                   pl: 1,
@@ -569,7 +564,8 @@ const DataTable: React.FC<DataTableProps> = ({
             />
           )}
 
-          <Box sx={{ position: "relative", display: "inline-block" }}>
+          {/* Sort Button */}
+          <Box sx={{ position: "relative", display: "inline-block", flexShrink: 0 }}>
             <ClickAwayListener onClickAway={() => setShowSort(false)}>
               <Box>
                 <Box
@@ -581,15 +577,14 @@ const DataTable: React.FC<DataTableProps> = ({
                     gap: 0.5,
                     cursor: "pointer",
                     px: 1,
-                    py: 0.5,
+                    height: 40, // updated to match search input height
                     border: "1px solid #e0e0e0",
-                    borderRadius: 1,
-                    height: 30,
+                    borderRadius: 2,
+                    minWidth: "fit-content",
+                    whiteSpace: "nowrap",
                   }}
+
                 >
-                  {/* <SortIcon
-                    sx={{ fontSize: 20, color: gridMaster.primaryColour }}
-                  /> */}
                   <svg
                     width="24"
                     height="24"
@@ -602,7 +597,7 @@ const DataTable: React.FC<DataTableProps> = ({
                       fill="#141414"
                     />
                   </svg>
-                  <Typography variant="body2" color="text.secondary">
+                  <Typography variant="body2" color="text.secondary" sx={{ display: { xs: "none", sm: "block" } }}>
                     Sort By
                   </Typography>
                 </Box>
@@ -634,7 +629,8 @@ const DataTable: React.FC<DataTableProps> = ({
             </ClickAwayListener>
           </Box>
 
-          <Box sx={{ position: "relative", display: "inline-block" }}>
+          {/* Filter Button */}
+          <Box sx={{ position: "relative", display: "inline-block", flexShrink: 0 }}>
             <Box
               onClick={() => setShowFilter((p) => !p)}
               sx={{
@@ -646,10 +642,11 @@ const DataTable: React.FC<DataTableProps> = ({
                 py: 0.5,
                 border: "1px solid #e0e0e0",
                 borderRadius: 1,
-                height: 30,
+                height: 40,
+                minWidth: "fit-content",
+                whiteSpace: "nowrap",
               }}
             >
-              {/* <FilterListIcon sx={{ fontSize: 20, color: "#666" }} /> */}
               <svg
                 width="24"
                 height="24"
@@ -662,7 +659,7 @@ const DataTable: React.FC<DataTableProps> = ({
                   fill="#141414"
                 />
               </svg>
-              <Typography variant="body2" color="text.secondary">
+              <Typography variant="body2" color="text.secondary" sx={{ display: { xs: "none", sm: "block" } }}>
                 Filters
               </Typography>
             </Box>
@@ -693,30 +690,39 @@ const DataTable: React.FC<DataTableProps> = ({
               </Box>
             )}
           </Box>
-           <Button
+
+          {/* Clear All Button */}
+          <Button
             variant="outlined"
             onClick={() => {
-              setServiceData({} as GenericFilterRequest);
+              setServiceData({});
               setSelectedEnums([]);
               setSelectedRanges([]);
               setSearchText("");
               setSelectedColumns([]);
               setSortType("asc");
-              
+
               callBacks.onClearAll?.({});
             }}
             sx={{
-              borderRadius: "999px",
+              height: 40,
+              borderRadius: '999px',
               bgcolor: "#edf0f5",
-              color: "#9c27b0", 
+              color: "#9c27b0",
               textTransform: "none",
               px: 2,
-              py: 1,
               border: "none",
+              minWidth: "fit-content",
+              flexShrink: 0,
+              whiteSpace: "nowrap",
+              display: "flex",
+              alignItems: "center",
               "&:hover": {
                 backgroundColor: "#e0e0e0",
               },
             }}
+
+
             startIcon={
               <Box
                 sx={{
@@ -725,15 +731,17 @@ const DataTable: React.FC<DataTableProps> = ({
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
-                  width: 24,
-                  height: 24,
+                  width: 18,
+                  height: 18,
                 }}
               >
-                <ClearIcon fontSize="small" sx={{ color: "#9c27b0" }} />
+                <ClearIcon sx={{ fontSize: 12, color: "#9c27b0" }} />
               </Box>
             }
           >
-            Clear All
+            <Typography sx={{ display: { xs: "none", sm: "block" } }}>
+              Clear All
+            </Typography>
           </Button>
         </Box>
 
@@ -813,10 +821,10 @@ const DataTable: React.FC<DataTableProps> = ({
               </svg>
             </ToggleButton>
           </ToggleButtonGroup>
-          
+
         </Box>
 
-       
+
       </Box>
       {view === "list" && (
         <Paper
@@ -1304,9 +1312,9 @@ const DataTable: React.FC<DataTableProps> = ({
           gap: { xs: 3, sm: 2 },
           p: 2,
           bgcolor: "background.paper",
-          borderRadius: 2,
-          border: "1px solid",
-          borderColor: "divider",
+          // borderRadius: 2,
+          // border: "1px solid",
+          // borderColor: "divider",
         }}
       >
         {/* Left section - Download controls */}
@@ -1390,7 +1398,7 @@ const DataTable: React.FC<DataTableProps> = ({
             }}
           >
             <Pagination
-             count={serverPages || totalPages}
+              count={serverPages || totalPages}
               page={currentPage || page}
               onChange={handlePaginationChange}
               variant="outlined"
