@@ -157,10 +157,10 @@ const DataTable: React.FC<DataTableProps> = ({
       filters:
         selectedEnums.length > 0
           ? selectedEnums.map((each: any) => ({
-              field: each.fieldCode,
-              values: each.values,
-              type: each.type,
-            }))
+            field: each.fieldCode,
+            values: each.values,
+            type: each.type,
+          }))
           : null,
 
       // [
@@ -431,20 +431,25 @@ const DataTable: React.FC<DataTableProps> = ({
         sx={{
           display: "flex",
           justifyContent: "space-between",
-          alignItems: "center",
+          alignItems: "flex-start",
+          flexDirection: { xs: "column", md: "row" },
           mb: 3,
           boxShadow: "none",
           bgcolor: "background.paper",
           borderRadius: 2,
           borderColor: "divider",
           flexWrap: "wrap",
+          gap: 2,
         }}
       >
         <Box>
           <Typography
             variant="h5"
-            sx={{ mr: 1.8, color: gridMaster?.primaryColour, fontWeight: 400 }}
-            color="text.secondary"
+            sx={{
+              mr: { xs: 0, md: 1.8 },
+              color: gridMaster?.primaryColour,
+              fontWeight: 400,
+            }} color="text.secondary"
             gutterBottom
           >
             {gridMasterObj?.title}
@@ -456,8 +461,9 @@ const DataTable: React.FC<DataTableProps> = ({
             display: "flex",
             alignItems: "center",
             gap: 2,
-            flex: 1,
+            flex: 2,
             flexWrap: "wrap",
+            width: { xs: "100%", md: "auto" },
           }}
         >
           {/* Search */}
@@ -488,9 +494,7 @@ const DataTable: React.FC<DataTableProps> = ({
               }}
               InputProps={{
                 startAdornment: (
-                  <SearchIcon
-                    sx={{ color: gridMasterObj.primaryColour, mr: 1 }}
-                  />
+                  <SearchIcon sx={{ color: gridMasterObj.primaryColour, mr: 1 }} />
                 ),
                 sx: {
                   height: 40,
@@ -575,7 +579,7 @@ const DataTable: React.FC<DataTableProps> = ({
 
           <Box sx={{ position: "relative", display: "inline-block" }}>
             <Box
-              onClick={() => setShowFilter((prev) => !prev)}
+              onClick={() => setShowFilter((p) => !p)}
               sx={{
                 display: "flex",
                 alignItems: "center",
@@ -1177,8 +1181,10 @@ const DataTable: React.FC<DataTableProps> = ({
       <Box
         sx={{
           display: "flex",
+          flexDirection: { xs: "column", sm: "row" },
           justifyContent: "space-between",
-          alignItems: "center",
+          alignItems: { xs: "stretch", sm: "center" },
+          gap: { xs: 3, sm: 2 },
           p: 2,
           bgcolor: "background.paper",
           borderRadius: 2,
@@ -1186,38 +1192,50 @@ const DataTable: React.FC<DataTableProps> = ({
           borderColor: "divider",
         }}
       >
-        <Box sx={{ display: "flex", gap: 2, alignItems: "center" }}>
+        {/* Left section - Download controls */}
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: { xs: "column", sm: "row" },
+            alignItems: { xs: "flex-start", sm: "center" },
+            gap: { xs: 1.5, sm: 2 },
+            flexWrap: "wrap",
+            order: { xs: 2, sm: 1 },
+          }}
+        >
           {selectedRows.length > 0 && (
             <Typography variant="body2" color="text.secondary">
               Selected Rows {selectedRows.length}
             </Typography>
           )}
 
-          <Typography variant="body2" color="text.secondary">
-            Download by
-          </Typography>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+            <Typography variant="body2" color="text.secondary">
+              Download by
+            </Typography>
 
-          <FormControl size="small" sx={{ minWidth: 150 }}>
-            <Select
-              displayEmpty
-              value={pendingFormat || exportFormat}
-              onChange={handleExportFormatChange}
-              sx={{ fontSize: "14px" }}
-              renderValue={(selected) => {
-                if (!selected) {
-                  return (
-                    <Typography variant="body2" color="text.secondary">
-                      Select File Format
-                    </Typography>
-                  );
-                }
-                return selected === "xlsx" ? "Excel" : "PDF";
-              }}
-            >
-              <MenuItem value="xlsx">Excel</MenuItem>
-              <MenuItem value="pdf">PDF</MenuItem>
-            </Select>
-          </FormControl>
+            <FormControl size="small" sx={{ minWidth: { xs: 120, sm: 150 } }}>
+              <Select
+                displayEmpty
+                value={pendingFormat || exportFormat}
+                onChange={handleExportFormatChange}
+                sx={{ fontSize: "14px" }}
+                renderValue={(selected) => {
+                  if (!selected) {
+                    return (
+                      <Typography variant="body2" color="text.secondary">
+                        Select Format
+                      </Typography>
+                    );
+                  }
+                  return selected === "xlsx" ? "Excel" : "PDF";
+                }}
+              >
+                <MenuItem value="xlsx">Excel</MenuItem>
+                <MenuItem value="pdf">PDF</MenuItem>
+              </Select>
+            </FormControl>
+          </Box>
 
           <CustomAlertDialog
             confirmOpen={confirmOpen}
@@ -1237,61 +1255,47 @@ const DataTable: React.FC<DataTableProps> = ({
           />
         </Box>
 
-        <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-          {/* <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-            <Button
-              variant="text"
+        {/* Right section - Pagination and rows per page */}
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: { xs: "column", sm: "row" },
+            alignItems: { xs: "stretch", sm: "center" },
+            gap: { xs: 2, sm: 2 },
+            order: { xs: 1, sm: 2 },
+          }}
+        >
+          {/* Pagination */}
+          <Box sx={{ display: "flex", justifyContent: { xs: "center", sm: "flex-end" } }}>
+            <Pagination
+              count={serverPages}
+              page={currentPage || 1}
+              onChange={handlePaginationChange}
+              variant="outlined"
+              shape="rounded"
+              color="primary"
               size="small"
-              startIcon={<ArrowDownwardIcon />}
-              sx={{ textTransform: "none", color: "text.secondary" }}
-            >
-              First
-            </Button>
-            <Button
-              variant="text"
-              size="small"
-              startIcon={<ArrowDownwardIcon />}
-              sx={{ textTransform: "none", color: "text.secondary" }}
-            >
-              Back
-            </Button>
-          </Box> */}
-          <Pagination
-            count={serverPages}
-            page={currentPage || 1}
-            onChange={handlePaginationChange}
-            variant="outlined"
-            shape="rounded"
-            color="primary"
-            size="small"
+              sx={{
+                "& .MuiPaginationItem-root": {
+                  fontSize: "14px",
+                  minWidth: "32px",
+                  height: "32px",
+                },
+              }}
+            />
+          </Box>
+
+          {/* Rows per page */}
+          <Box
             sx={{
-              "& .MuiPaginationItem-root": {
-                fontSize: "14px",
-                minWidth: "32px",
-                height: "32px",
-              },
+              display: "flex",
+              alignItems: "center",
+              gap: 1,
+              justifyContent: { xs: "center", sm: "flex-end" },
+              flexShrink: 0,
             }}
-          />
-          {/* <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-            <Button
-              variant="text"
-              size="small"
-              endIcon={<ArrowUpwardIcon />}
-              sx={{ textTransform: "none", color: "text.secondary" }}
-            >
-              Next
-            </Button>
-            <Button
-              variant="text"
-              size="small"
-              endIcon={<ArrowUpwardIcon />}
-              sx={{ textTransform: "none", color: "text.secondary" }}
-            >
-              Last
-            </Button>
-          </Box> */}
-          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-            <Typography variant="body2" color="text.secondary">
+          >
+            <Typography variant="body2" color="text.secondary" sx={{ whiteSpace: "nowrap" }}>
               Rows per page
             </Typography>
             <RowsPerPageSelector
