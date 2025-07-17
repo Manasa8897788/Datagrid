@@ -166,10 +166,10 @@ const DataTable: React.FC<DataTableProps> = ({
       filters:
         selectedEnums.length > 0
           ? selectedEnums.map((each: any) => ({
-            field: each.fieldCode,
-            values: each.values,
-            type: each.type,
-          }))
+              field: each.fieldCode,
+              values: each.values,
+              type: each.type,
+            }))
           : null,
 
       // [
@@ -852,81 +852,105 @@ const DataTable: React.FC<DataTableProps> = ({
         </Box>
       </Box>
 
-      {(selectedColumns?.length > 0 && sortType) || selectedEnums?.some((e: { values: string | any[]; }) => e.values?.length) || selectedRanges?.some(r => r.from || r.to) ? (
-        <Box sx={{ mb: 2, display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
+      {(selectedColumns?.length > 0 && sortType) ||
+      selectedEnums?.some(
+        (e: { values: string | any[] }) => e.values?.length
+      ) ||
+      selectedRanges?.some((r) => r.from || r.to) ? (
+        <Box
+          sx={{
+            mb: 2,
+            display: "flex",
+            alignItems: "center",
+            gap: 1,
+            flexWrap: "wrap",
+          }}
+        >
           {selectedColumns?.length > 0 && sortType && (
             <>
-              <Typography variant="body2" sx={{ color: 'text.secondary', mr: 1 }}>
+              <Typography
+                variant="body2"
+                sx={{ color: "text.secondary", mr: 1 }}
+              >
                 Sorted by
               </Typography>
               <Chip
-                label={selectedColumns.join(', ')}
+                label={selectedColumns.join(", ")}
                 size="small"
                 sx={{
-                  backgroundColor: '#f5f5f5',
-                  border: '1px solid #ddd',
-                  '& .MuiChip-label': {
-                    fontSize: '0.875rem',
-                    color: '#333'
-                  }
+                  backgroundColor: "#f5f5f5",
+                  border: "1px solid #ddd",
+                  "& .MuiChip-label": {
+                    fontSize: "0.875rem",
+                    color: "#333",
+                  },
                 }}
               />
               <Chip
                 label={sortType.toUpperCase()}
                 size="small"
                 sx={{
-                  backgroundColor: '#f5f5f5',
-                  border: '1px solid #ddd',
-                  '& .MuiChip-label': {
-                    fontSize: '0.875rem',
-                    color: '#333'
-                  }
+                  backgroundColor: "#f5f5f5",
+                  border: "1px solid #ddd",
+                  "& .MuiChip-label": {
+                    fontSize: "0.875rem",
+                    color: "#333",
+                  },
                 }}
               />
             </>
           )}
 
           {/* Filter chips */}
-          {(selectedEnums?.some((e: { values: string | any[]; }) => e.values?.length) || selectedRanges?.some(r => r.from || r.to)) && (
-            <Typography variant="body2" sx={{ color: 'text.secondary', mr: 1 }}>
+          {(selectedEnums?.some(
+            (e: { values: string | any[] }) => e.values?.length
+          ) ||
+            selectedRanges?.some((r) => r.from || r.to)) && (
+            <Typography variant="body2" sx={{ color: "text.secondary", mr: 1 }}>
               Filtered by
             </Typography>
           )}
-          {selectedEnums?.map((enumFilter: any, index: any) => (
-            enumFilter.values?.length > 0 && (
-              <Chip
-                key={`enum-${index}`}
-                label={`${capitalize(enumFilter.fieldCode)}: ${enumFilter.values.map(capitalize).join(', ')}`}
-                size="small"
-                sx={{
-                  backgroundColor: '#f5f5f5',
-                  border: '1px solid #ddd',
-                  '& .MuiChip-label': {
-                    fontSize: '0.875rem',
-                    color: '#333'
-                  }
-                }}
-              />
-            )
-          ))}
+          {selectedEnums?.map(
+            (enumFilter: any, index: any) =>
+              enumFilter.values?.length > 0 && (
+                <Chip
+                  key={`enum-${index}`}
+                  label={`${capitalize(
+                    enumFilter.fieldCode
+                  )}: ${enumFilter.values.map(capitalize).join(", ")}`}
+                  size="small"
+                  sx={{
+                    backgroundColor: "#f5f5f5",
+                    border: "1px solid #ddd",
+                    "& .MuiChip-label": {
+                      fontSize: "0.875rem",
+                      color: "#333",
+                    },
+                  }}
+                />
+              )
+          )}
 
-          {selectedRanges?.map((rangeFilter, index) => (
-            (rangeFilter.from || rangeFilter.to) && (
-              <Chip
-                key={`range-${index}`}
-                label={`${capitalize(rangeFilter.field)}: ${formatValue(rangeFilter.from)} – ${formatValue(rangeFilter.to)}`}
-                size="small"
-                sx={{
-                  backgroundColor: '#f5f5f5',
-                  border: '1px solid #ddd',
-                  '& .MuiChip-label': {
-                    fontSize: '0.875rem',
-                    color: '#333'
-                  }
-                }}
-              />
-            )
-          ))}
+          {selectedRanges?.map(
+            (rangeFilter, index) =>
+              (rangeFilter.from || rangeFilter.to) && (
+                <Chip
+                  key={`range-${index}`}
+                  label={`${capitalize(rangeFilter.field)}: ${formatValue(
+                    rangeFilter.from
+                  )} – ${formatValue(rangeFilter.to)}`}
+                  size="small"
+                  sx={{
+                    backgroundColor: "#f5f5f5",
+                    border: "1px solid #ddd",
+                    "& .MuiChip-label": {
+                      fontSize: "0.875rem",
+                      color: "#333",
+                    },
+                  }}
+                />
+              )
+          )}
         </Box>
       ) : null}
       {view === "list" && (
@@ -1253,10 +1277,10 @@ const DataTable: React.FC<DataTableProps> = ({
               return (
                 <div key={index} className="col-12 col-sm-6 col-md-4 col-lg-3">
                   <div
-                    className="card shadow-sm border-1 h-100"
-                    style={{ borderRadius: "12px" }}
+                    className="card border-2 h-100"
+                    style={{ borderRadius: "8px" }}
                   >
-                    <div className="card-body p-4 d-flex flex-column">
+                    <div className="card-body p-3 d-flex flex-column">
                       {/* Avatar + Title */}
                       {gridMasterObj.gridColumns
                         .filter(
@@ -1265,13 +1289,13 @@ const DataTable: React.FC<DataTableProps> = ({
                             ["name", "fullName"].includes(col.code)
                         )
                         .map((col) => (
-                          <div key={col.code} className="text-center mb-3">
+                          <div key={col.code} className="text-center">
                             <div
-                              className="rounded-circle text-white d-flex align-items-center justify-content-center mx-auto mb-2"
+                              className="text-white d-flex align-items-center justify-content-center mx-auto"
                               style={{
-                                width: 50,
-                                height: 50,
-                                backgroundColor: "#9c27b0",
+                                // width: 50,
+                                // height: 50,
+                                backgroundColor: "red",
                                 fontWeight: "bold",
                                 fontSize: "16px",
                               }}
@@ -1297,41 +1321,60 @@ const DataTable: React.FC<DataTableProps> = ({
                         )
                         .slice(0, 4)
                         .map((col) => (
-                          <div key={col.code} className="mb-3">
+                          <div key={col.code} className="mb-2">
                             <small
-                              className="text-muted d-block mb-1"
+                              className="text-muted d-block"
                               style={{ fontSize: "12px" }}
                             >
                               {col.title}
                             </small>
-                            <div style={{ fontSize: "14px", color: "#333" }}>
+                            <div
+                              style={{
+                                fontSize: "0.85rem",
+                                color: "#141414",
+                                fontWeight: 500,
+                              }}
+                            >
                               {row[col.code] || "-"}
                             </div>
                           </div>
                         ))}
 
                       {gridMasterObj.actionReqd && (
-                        <div className="mt-auto pt-3">
+                        <div className="mt-auto">
                           <div className="d-flex justify-content-between align-items-center">
                             {/* Show More */}
-                            <button
-                              className="btn text-white fw-medium px-3 py-2"
-                              style={{
-                                backgroundColor: "#9c27b0",
-                                borderRadius: "8px",
-                                fontSize: "14px",
-                                border: "none",
-                                whiteSpace: "nowrap",
-                              }}
+                            <Button
+                              variant="contained"
                               onClick={() => {
                                 if (targetKey[0]) {
                                   const key = targetKey[0];
                                   onHandleView(row[key]);
                                 }
                               }}
+                              sx={{
+                                backgroundColor: "#9c27b0",
+                                color: "var(--Colors-White, #FFF)",
+                                textAlign: "right",
+                                fontFamily: "Inter, sans-serif",
+                                fontSize: "13px", // 0.875rem = 14px
+                                fontStyle: "normal",
+                                fontWeight: 400,
+                                lineHeight: "14px", // 1.125rem = 18px
+                                borderRadius: "4px",
+                                paddingY: "7px", // 0.5rem = 8px
+                                paddingX: "10px", // 0.75rem = 12px
+                                whiteSpace: "nowrap",
+                                boxShadow: "none",
+                                textTransform: "none",
+                                "&:hover": {
+                                  backgroundColor: "#8e24aa",
+                                  boxShadow: "none",
+                                },
+                              }}
                             >
                               Show More
-                            </button>
+                            </Button>
 
                             {/* Icons */}
                             <div className="d-flex gap-1">

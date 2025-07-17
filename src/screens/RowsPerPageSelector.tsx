@@ -74,7 +74,7 @@ const RowsPerPageSelector: React.FC<RowsPerPageSelectorProps> = ({
             inputProps={{
               ...params.inputProps,
               inputMode: "numeric",
-              pattern: "[0-9]*",
+              pattern: "[1-9]*",
             }}
           />
         )}
