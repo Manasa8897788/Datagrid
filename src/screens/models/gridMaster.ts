@@ -21,7 +21,9 @@ export interface GridMaster {
   gridActions: Record<string, EndPoint>;
   callBacks: CallBacks;
   serverSide: boolean;
+  serverSidePagination: boolean;
   currentPage?: number;
+  currentPageSize?: number;
   totalPages?: number;
 }
 

@@ -6,12 +6,16 @@ interface RowsPerPageSelectorProps {
   gridMaster: GridMaster;
   currentRowsPerPage: number;
   setRowsPerPage: (value: number) => void;
+  serviceData: any;
+  isServiceDataEmpty: (value: any) => void;
 }
 
 const RowsPerPageSelector: React.FC<RowsPerPageSelectorProps> = ({
   gridMaster,
   currentRowsPerPage,
   setRowsPerPage,
+  serviceData,
+  isServiceDataEmpty,
 }) => {
   const [inputValue, setInputValue] = useState(currentRowsPerPage.toString());
 
@@ -28,12 +32,25 @@ const RowsPerPageSelector: React.FC<RowsPerPageSelectorProps> = ({
     if (!isNaN(numericValue) && numericValue > 0) {
       setRowsPerPage(numericValue);
 
-      const value = {
-        page: 0,
-        rowsPerPage: numericValue,
-        isFilter: false,
-      };
+      // const value = {
+      //   page: 1,
+      //   rowsPerPage: numericValue,
+      //   filteredData: { ...serviceData, pageNumber: 1 },
+      //   isFilter: isServiceDataEmpty(serviceData),
+      // };
 
+      // gridMaster?.callBacks?.onPagination?.(value);
+    }
+  };
+
+  const handleKeyDown = (e: any) => {
+    if (e.key === "Enter") {
+      const value = {
+        page: 1,
+        pageSize: serviceData?.pageSize,
+        filteredData: { ...serviceData, pageNumber: 1 },
+        isFilter: isServiceDataEmpty(serviceData),
+      };
       gridMaster?.callBacks?.onPagination?.(value);
     }
   };
@@ -46,6 +63,7 @@ const RowsPerPageSelector: React.FC<RowsPerPageSelectorProps> = ({
         value={currentRowsPerPage.toString()}
         inputValue={inputValue}
         onInputChange={handleInputChange}
+        onKeyDown={handleKeyDown}
         size="small"
         sx={{ minWidth: 100 }}
         renderInput={(params) => (

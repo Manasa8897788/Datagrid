@@ -265,6 +265,7 @@ export const customerGrid: GridMaster = {
     onPagination: handlePagination,
   },
   serverSide: true,
+  serverSidePagination: true,
 
   gridActions: {
     ep_data: { uri: "/customer/get", method: "GET" },

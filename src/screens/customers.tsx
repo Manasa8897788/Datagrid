@@ -20,7 +20,9 @@ const Customers: React.FC = () => {
       setCustomData(response?.content?.records || []);
       setCustomerGrid((prev) => ({
         ...prev,
-        currentPage: value.pageNumber || customerGrid.currentPage,
+        // currentPage: value.pageNumber + 1 || customerGrid.currentPage,
+        currentPage: value.pageNumber + 1,
+        currentPageSize: value.pageSize || customerGrid.currentPageSize,
         totalPages: response?.content?.totalPages || 1,
       }));
     } catch (error) {
@@ -65,7 +67,10 @@ const Customers: React.FC = () => {
 
     if (isFilter) {
       console.log("filteredData", filteredData);
-      getFilterdData(filteredData);
+      getFilterdData({
+        ...filteredData,
+        pageNumber: offset,
+      });
       console.log("filter");
     } else {
       try {

@@ -72,6 +72,7 @@ const DataTable: React.FC<DataTableProps> = ({
     callBacks,
     totalPages: serverPages,
     currentPage,
+    serverSidePagination,
   } = gridMaster || children;
   const [selectedEnums, setSelectedEnums] = useState<FilterCriteria[] | any>(
     []
@@ -157,10 +158,10 @@ const DataTable: React.FC<DataTableProps> = ({
       filters:
         selectedEnums.length > 0
           ? selectedEnums.map((each: any) => ({
-            field: each.fieldCode,
-            values: each.values,
-            type: each.type,
-          }))
+              field: each.fieldCode,
+              values: each.values,
+              type: each.type,
+            }))
           : null,
 
       // [
@@ -449,7 +450,8 @@ const DataTable: React.FC<DataTableProps> = ({
               mr: { xs: 0, md: 1.8 },
               color: gridMaster?.primaryColour,
               fontWeight: 400,
-            }} color="text.secondary"
+            }}
+            color="text.secondary"
             gutterBottom
           >
             {gridMasterObj?.title}
@@ -494,7 +496,9 @@ const DataTable: React.FC<DataTableProps> = ({
               }}
               InputProps={{
                 startAdornment: (
-                  <SearchIcon sx={{ color: gridMasterObj.primaryColour, mr: 1 }} />
+                  <SearchIcon
+                    sx={{ color: gridMasterObj.primaryColour, mr: 1 }}
+                  />
                 ),
                 sx: {
                   height: 40,
@@ -815,7 +819,14 @@ const DataTable: React.FC<DataTableProps> = ({
                   const key: keyof typeof row = gridMasterObj.actionKey;
 
                   const isSelected = selectedRows.includes(row[key]);
-                  const actualIndex = (page - 1) * rowsPerPage + index;
+                  let actualIndex;
+
+                  if (serverSidePagination && currentPage) {
+                    actualIndex =
+                      rowsPerPage * currentPage - rowsPerPage + index;
+                  } else {
+                    actualIndex = (page - 1) * rowsPerPage + index;
+                  }
 
                   const targetKey = Object.keys(row).filter((each) => {
                     return each === gridMasterObj.actionKey ? each : null;
@@ -843,9 +854,17 @@ const DataTable: React.FC<DataTableProps> = ({
                         <TableCell
                           sx={{ whiteSpace: "nowrap", overflow: "hidden" }}
                         >
-                          <Typography variant="body2" color="text.secondary">
-                            {String(actualIndex + 1).padStart(2, "0")}
-                          </Typography>
+                          {" "}
+                          {serverSidePagination && (
+                            <Typography variant="body2" color="text.secondary">
+                              {String(actualIndex + 1).padStart(2, "0")}
+                            </Typography>
+                          )}
+                          {!serverSidePagination && (
+                            <Typography variant="body2" color="text.secondary">
+                              {String(actualIndex + 1).padStart(2, "0")}
+                            </Typography>
+                          )}
                         </TableCell>
                       )}
                       {gridMasterObj.gridColumns
@@ -1266,7 +1285,12 @@ const DataTable: React.FC<DataTableProps> = ({
           }}
         >
           {/* Pagination */}
-          <Box sx={{ display: "flex", justifyContent: { xs: "center", sm: "flex-end" } }}>
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: { xs: "center", sm: "flex-end" },
+            }}
+          >
             <Pagination
               count={serverPages}
               page={currentPage || 1}
@@ -1295,12 +1319,18 @@ const DataTable: React.FC<DataTableProps> = ({
               flexShrink: 0,
             }}
           >
-            <Typography variant="body2" color="text.secondary" sx={{ whiteSpace: "nowrap" }}>
+            <Typography
+              variant="body2"
+              color="text.secondary"
+              sx={{ whiteSpace: "nowrap" }}
+            >
               Rows per page
             </Typography>
             <RowsPerPageSelector
               gridMaster={gridMasterObj}
               currentRowsPerPage={rowsPerPage}
+              serviceData={serviceData}
+              isServiceDataEmpty={isServiceDataEmpty}
               setRowsPerPage={(val) => setRowsPerPage(val)}
             />
           </Box>
