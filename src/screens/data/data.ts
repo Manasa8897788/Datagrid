@@ -86,7 +86,7 @@ export const customerGrid: GridMaster = {
   gridPagination: {
     reqd: true,
     pageCount: 10,
-    recordPerPage: [10,20,50,100],
+    recordPerPage: [10, 20, 50, 100],
     dynamicLoad: false,
   },
   gridColumns: [
@@ -147,7 +147,7 @@ export const customerGrid: GridMaster = {
       type: DataType.STRING,
     },
     {
-      id: 7, 
+      id: 7,
       code: "dob",
       title: "Date of Birth",
       sortable: false,
@@ -252,8 +252,8 @@ export const customerGrid: GridMaster = {
     onDownload: handleDownload,
     onPagination: handlePagination,
   },
-  serverSide: true,
-  serverSidePagination: true,
+  serverSide: false,
+  serverSidePagination: false,
   pageState: PageState.IDLE,
 
   gridActions: {

@@ -58,6 +58,134 @@ import { RangeCriteria } from "./models/rangeCriteria";
 import { GenericFilterRequest } from "./models/genericFilterRequest";
 import ClearIcon from "@mui/icons-material/Clear";
 
+function filterCustomers(customers: any[], filterConfig: any) {
+  let filteredData = [...customers];
+
+  // 1. Search Key Filtering (searches across searchable columns)
+  if (filterConfig.searchKey && filterConfig.searchableColumns) {
+    const searchTerm = filterConfig.searchKey.toLowerCase();
+    filteredData = filteredData.filter((customer) => {
+      return filterConfig.searchableColumns.some((column: string) => {
+        const value = customer[column];
+        if (value === null || value === undefined) return false;
+        return String(value).toLowerCase().includes(searchTerm);
+      });
+    });
+  }
+
+  // 2. Field-based Filters (exact match or inclusion)
+  if (filterConfig.filters && filterConfig.filters.length > 0) {
+    filteredData = filteredData.filter((customer) => {
+      return filterConfig.filters.every((filter: any) => {
+        const fieldValue = customer[filter.field];
+
+        // Handle null values in filter values
+        if (filter.values.includes(null)) {
+          // If null is in filter values, include records with null values
+          if (fieldValue === null) return true;
+        }
+
+        // For non-null values, check if field value is in filter values
+        if (fieldValue !== null) {
+          return filter.values.includes(fieldValue);
+        }
+
+        return false;
+      });
+    });
+  }
+
+  // 3. Range Filters (for dates and numbers)
+  if (filterConfig.ranges && filterConfig.ranges.length > 0) {
+    filteredData = filteredData.filter((customer) => {
+      return filterConfig.ranges.every((range: any) => {
+        const fieldValue = customer[range.field];
+        if (fieldValue === null) return false;
+
+        if (range.type === "DATE") {
+          const customerDate = new Date(fieldValue);
+          const fromDate = new Date(range.from);
+          const toDate = new Date(range.to);
+          return customerDate >= fromDate && customerDate <= toDate;
+        }
+
+        if (range.type === "DATE_AND_TIME") {
+          const customerDateTime = new Date(fieldValue);
+          const fromDateTime = new Date(range.from);
+          const toDateTime = new Date(range.to);
+          return (
+            customerDateTime >= fromDateTime && customerDateTime <= toDateTime
+          );
+        }
+
+        if (range.type === "NUMBER") {
+          const numValue = Number(fieldValue);
+          return numValue >= range.from && numValue <= range.to;
+        }
+
+        return true;
+      });
+    });
+  }
+
+  // 4. Sorting
+  if (filterConfig.sortColumns && filterConfig.sortColumns.length > 0) {
+    filteredData.sort((a, b) => {
+      for (const column of filterConfig.sortColumns) {
+        const aValue = a[column];
+        const bValue = b[column];
+
+        // Handle null values (put them at the end)
+        if (aValue === null && bValue === null) continue;
+        if (aValue === null) return 1;
+        if (bValue === null) return -1;
+
+        let comparison = 0;
+
+        // if (
+        //   column === "dob" ||
+        //   column === "registeredOn" ||
+        //   column === "anniversary"
+        // ) {
+        //   const dateA = new Date(aValue);
+        //   const dateB = new Date(bValue);
+        //   comparison = dateA.getTime() - dateB.getTime();
+        // }
+        // String comparison
+
+        // Date comparison
+        if (typeof aValue === "string" && typeof bValue === "string") {
+          comparison = aValue.localeCompare(bValue);
+        }
+        // Number comparison
+        else {
+          comparison = aValue - bValue;
+        }
+
+        if (comparison !== 0) {
+          return filterConfig.sortDirection === "DESC"
+            ? -comparison
+            : comparison;
+        }
+      }
+      return 0;
+    });
+  }
+
+  // 5. Pagination
+  const startIndex =
+    (filterConfig.pageNumber || 0) * (filterConfig.pageSize || 10);
+  const endIndex = startIndex + (filterConfig.pageSize || 10);
+  const paginatedData = filteredData.slice(startIndex, endIndex);
+
+  return {
+    data: paginatedData,
+    // data: paginatedData,
+    // totalCount: filteredData.length,
+    // totalPages: Math.ceil(filteredData.length / (filterConfig.pageSize || 10)),
+  };
+}
+
 interface DataTableProps {
   data: any[];
   gridMaster?: GridMaster;
@@ -109,30 +237,29 @@ const DataTable: React.FC<DataTableProps> = ({
     {}
   );
 
-
   const handleToggleSearch = (colCode: string) => {
-  setSearchOpenCols((prev) => {
-    const newState: { [key: string]: boolean } = {};
+    setSearchOpenCols((prev) => {
+      const newState: { [key: string]: boolean } = {};
 
-    Object.keys(prev).forEach((key) => {
-      newState[key] = false;
+      Object.keys(prev).forEach((key) => {
+        newState[key] = false;
+      });
+
+      return {
+        ...newState,
+        [colCode]: !prev[colCode],
+      };
     });
 
-    return {
-      ...newState,
-      [colCode]: !prev[colCode],
-    };
-  });
-
-  setSearchValues((prev) => {
-    // Clear the value only if we're closing the current search box
-    const isCurrentlyOpen = searchOpenCols[colCode];
-    return {
-      ...prev,
-      [colCode]: isCurrentlyOpen ? "" : prev[colCode],
-    };
-  });
-};
+    setSearchValues((prev) => {
+      // Clear the value only if we're closing the current search box
+      const isCurrentlyOpen = searchOpenCols[colCode];
+      return {
+        ...prev,
+        [colCode]: isCurrentlyOpen ? "" : prev[colCode],
+      };
+    });
+  };
 
   const handleSearchChange = (colCode: string, value: string) => {
     setSearchValues((prev) => ({
@@ -278,6 +405,13 @@ const DataTable: React.FC<DataTableProps> = ({
     page,
     isOnSearchClicked,
   ]);
+
+  useEffect(() => {
+    if (!serverSidePagination && !gridMasterObj.serverSide) {
+      const filteredDataOffline = filterCustomers(data, serviceData);
+      setFilteredData(filteredDataOffline.data);
+    }
+  }, [serviceData]);
 
   const handleToggle = () => {
     setShowSort((prev) => !prev);

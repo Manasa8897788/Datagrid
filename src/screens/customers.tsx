@@ -13,7 +13,6 @@ import { PageState } from "./models/pageState";
 interface CustomersProps {}
 
 const Customers: React.FC<CustomersProps> = () => {
-
   const [customData, setCustomData] = useState<Customer[]>([]);
 
   const getFilterdData = async (value: any) => {
@@ -71,38 +70,43 @@ const Customers: React.FC<CustomersProps> = () => {
     getFilterdData(value);
   };
 
-  const handleColumnSearch = async (value: { column: string; searchText: string }) => {
-  const { column, searchText } = value;
-  console.log("handleColumnSearch", value);
+  const handleColumnSearch = async (value: {
+    column: string;
+    searchText: string;
+  }) => {
+    const { column, searchText } = value;
+    console.log("handleColumnSearch", value);
 
-  setCustomerGrid((prev) => ({
-    ...prev,
-    pageState: PageState.LOADING,
-  }));
-
-  try {
-    const response = await dataService.fetchCustomersByColumn(column, searchText);
-    const records = response?.content;
-
-    setCustomData(records);
-    console.log("Column search records:", records);
-    console.log("Column search response:", response);
     setCustomerGrid((prev) => ({
       ...prev,
-      currentPage: 1,
-      totalPages: response?.content?.totalPages || 1,
-      pageState: PageState.SUCCESS,
+      pageState: PageState.LOADING,
     }));
-  } catch (error) {
-    setCustomData([]);
-    setCustomerGrid((prev) => ({
-      ...prev,
-      pageState: PageState.ERROR,
-    }));
-    console.error("Error fetching customers by column search:", error);
-  }
-};
 
+    try {
+      const response = await dataService.fetchCustomersByColumn(
+        column,
+        searchText
+      );
+      const records = response?.content;
+
+      setCustomData(records);
+      console.log("Column search records:", records);
+      console.log("Column search response:", response);
+      setCustomerGrid((prev) => ({
+        ...prev,
+        currentPage: 1,
+        totalPages: response?.content?.totalPages || 1,
+        pageState: PageState.SUCCESS,
+      }));
+    } catch (error) {
+      setCustomData([]);
+      setCustomerGrid((prev) => ({
+        ...prev,
+        pageState: PageState.ERROR,
+      }));
+      console.error("Error fetching customers by column search:", error);
+    }
+  };
 
   const handlePagination = async (value: any) => {
     const {
@@ -114,49 +118,49 @@ const Customers: React.FC<CustomersProps> = () => {
     const currentPage = pageNumber < 1 ? 1 : pageNumber;
     const offset = currentPage - 1;
 
-    if (isFilter) {
-      console.log("filteredData", filteredData);
-      getFilterdData({
-        ...filteredData,
-        pageNumber: offset,
-      });
-      console.log("filter");
-    } else {
-      setCustomerGrid((prev) => ({
-        ...prev,
-        pageState: PageState.LOADING,
-      }));
-      try {
-        const response = await dataService.getCustomersPaginated(
-          offset,
-          pageSize
-        );
-        console.log("Paginated response:", response);
-        setCustomData(response?.content?.records || []);
-        setCustomerGrid((prev) => ({
-          ...prev,
-          currentPage: currentPage,
-          totalPages: response?.content?.totalPages || 1,
-          pageState: PageState.SUCCESS,
-        }));
-      } catch (error) {
-        setCustomerGrid((prev) => ({
-          ...prev,
-          pageState: PageState.ERROR,
-        }));
-        setCustomData([]);
-        console.error("Error fetching paginated customers:", error);
-      }
-      console.log("paginated");
-    }
+    // if (isFilter) {
+    //   console.log("filteredData", filteredData);
+    //   getFilterdData({
+    //     ...filteredData,
+    //     pageNumber: offset,
+    //   });
+    //   console.log("filter");
+    // } else {
+    //   setCustomerGrid((prev) => ({
+    //     ...prev,
+    //     pageState: PageState.LOADING,
+    //   }));
+    //   try {
+    //     const response = await dataService.getCustomersPaginated(
+    //       offset,
+    //       pageSize
+    //     );
+    //     console.log("Paginated response:", response);
+    //     setCustomData(response?.content?.records || []);
+    //     setCustomerGrid((prev) => ({
+    //       ...prev,
+    //       currentPage: currentPage,
+    //       totalPages: response?.content?.totalPages || 1,
+    //       pageState: PageState.SUCCESS,
+    //     }));
+    //   } catch (error) {
+    //     setCustomerGrid((prev) => ({
+    //       ...prev,
+    //       pageState: PageState.ERROR,
+    //     }));
+    //     setCustomData([]);
+    //     console.error("Error fetching paginated customers:", error);
+    //   }
+    //   console.log("paginated");
+    // }
   };
 
   const handleFilter = (value: any) => {
     console.log("handleFilter", value);
-    getFilterdData(value);
+    // getFilterdData(value);
   };
   const handleClearAll = async () => {
-    fetchData();
+    // fetchData();
   };
 
   const handleSelect = () => {};
@@ -247,12 +251,7 @@ const Customers: React.FC<CustomersProps> = () => {
         // borderRadius: ,
       }}
     >
-      
-
-      <DataTable
-        data={customData}
-        gridMaster={customerGrid}
-      >
+      <DataTable data={customData} gridMaster={customerGrid}>
         {customerGrid}
       </DataTable>
     </Box>
