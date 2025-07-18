@@ -86,13 +86,12 @@ export const customerGrid: GridMaster = {
   gridPagination: {
     reqd: true,
     pageCount: 10,
-    recordPerPage: [5, 10, 15, 20],
+    recordPerPage: [10,20,50,100],
     dynamicLoad: false,
   },
   gridColumns: [
     {
       id: 2,
-      gridId: 1,
       code: "firstName",
       title: "First Name",
       sortable: true,
@@ -104,7 +103,6 @@ export const customerGrid: GridMaster = {
     },
     {
       id: 3,
-      gridId: 1,
       code: "middleName",
       title: "Middle Name",
       sortable: false,
@@ -116,7 +114,6 @@ export const customerGrid: GridMaster = {
     },
     {
       id: 4,
-      gridId: 1,
       code: "lastName",
       title: "Last Name",
       sortable: true,
@@ -128,7 +125,6 @@ export const customerGrid: GridMaster = {
     },
     {
       id: 5,
-      gridId: 1,
       code: "username",
       title: "Username",
       sortable: true,
@@ -140,7 +136,6 @@ export const customerGrid: GridMaster = {
     },
     {
       id: 6,
-      gridId: 1,
       code: "gender",
       title: "Gender",
       sortable: false,
@@ -152,20 +147,18 @@ export const customerGrid: GridMaster = {
       type: DataType.STRING,
     },
     {
-      id: 7,
-      gridId: 1,
+      id: 7, 
       code: "dob",
       title: "Date of Birth",
       sortable: false,
       searchReqd: false,
-      filterable: true,
+      filterable: false,
       displayable: true,
       formElementType: "range",
-      type: DataType.DATE,
+      type: DataType.INTEGER, // Using NUMBER for date representation
     },
     {
       id: 8,
-      gridId: 1,
       code: "anniversary",
       title: "Anniversary",
       sortable: false,
@@ -177,7 +170,6 @@ export const customerGrid: GridMaster = {
     },
     {
       id: 9,
-      gridId: 1,
       code: "mobileNumber",
       title: "Mobile Number",
       sortable: false,
@@ -189,7 +181,6 @@ export const customerGrid: GridMaster = {
     },
     {
       id: 10,
-      gridId: 1,
       code: "emailId",
       title: "Email ID",
       sortable: false,
@@ -201,7 +192,6 @@ export const customerGrid: GridMaster = {
     },
     {
       id: 11,
-      gridId: 1,
       code: "referredBy",
       title: "Referred By",
       sortable: true,
@@ -213,7 +203,6 @@ export const customerGrid: GridMaster = {
     },
     {
       id: 12,
-      gridId: 1,
       code: "prefLang",
       title: "Preferred Lang.",
       sortable: false,
@@ -226,19 +215,17 @@ export const customerGrid: GridMaster = {
     },
     {
       id: 13,
-      gridId: 1,
       code: "registeredOn",
       title: "Registered On",
       sortable: true,
       searchReqd: false,
-      filterable: false,
+      filterable: true,
       displayable: true,
-      formElementType: "date",
+      formElementType: "range",
       type: DataType.DATE_AND_TIME,
     },
     {
       id: 14,
-      gridId: 1,
       code: "currency",
       title: "Currency",
       sortable: true,

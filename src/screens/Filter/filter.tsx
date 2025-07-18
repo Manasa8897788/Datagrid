@@ -17,6 +17,7 @@ import type { GridMaster } from "../models/gridMaster";
 import type { FilterCriteria } from "../models/searchCriteria";
 import type { RangeCriteria } from "../models/rangeCriteria";
 import { GenericFilterRequest } from "../models/genericFilterRequest";
+import { DataType } from "../models/dataType";
 
 type SortByDataProps = {
   onClose?: () => void;
@@ -342,42 +343,83 @@ export default function FilterByData({
                   {column.title}
                 </Typography>
                 <Box sx={{ display: "flex", gap: 1, flexDirection: "column" }}>
+                  {/* From Field */}
                   <TextField
                     label="From"
+                    type={
+                      column.type === DataType.DATE || column.type === DataType.DATE_AND_TIME
+                        ? "date"
+                        : [DataType.INTEGER, DataType.DOUBLE, DataType.LONG].includes(column.type)
+                          ? "number"
+                          : "text"
+                    }
                     variant="outlined"
                     size="small"
                     fullWidth
+                    InputLabelProps={{ shrink: true }}
                     value={getRangeValue(column.title, "from")}
                     onChange={(e) =>
-                      handleRangeChange(
-                        e,
-                        column.code,
-                        column.title,
-                        column.type,
-                        "from"
-                      )
+                      handleRangeChange(e, column.code, column.title, column.type, "from")
                     }
+                    onKeyDown={(e) => {
+                      const isNumberField = [DataType.INTEGER, DataType.DOUBLE, DataType.LONG].includes(column.type);
+                      if (isNumberField) {
+                        const allowedKeys = [
+                          "Backspace", "Tab", "ArrowLeft", "ArrowRight", "Delete", "Enter",
+                          "Home", "End", "-", ".", // Allow minus and dot for numbers
+                        ];
+                        const numberKeys = /^[0-9]$/;
+
+                        if (
+                          !numberKeys.test(e.key) &&
+                          !allowedKeys.includes(e.key)
+                        ) {
+                          e.preventDefault();
+                        }
+                      }
+                    }}
                     sx={{
                       "& .MuiInputBase-root": {
                         fontSize: "0.875rem",
                       },
                     }}
                   />
+
+                  {/* To Field */}
                   <TextField
                     label="To"
+                    type={
+                      column.type === DataType.DATE || column.type === DataType.DATE_AND_TIME
+                        ? "date"
+                        : [DataType.INTEGER, DataType.DOUBLE, DataType.LONG].includes(column.type)
+                          ? "number"
+                          : "text"
+                    }
                     variant="outlined"
                     size="small"
                     fullWidth
+                    InputLabelProps={{ shrink: true }}
                     value={getRangeValue(column.title, "to")}
                     onChange={(e) =>
-                      handleRangeChange(
-                        e,
-                        column.code,
-                        column.title,
-                        column.type,
-                        "to"
-                      )
+                      handleRangeChange(e, column.code, column.title, column.type, "to")
                     }
+                    onKeyDown={(e) => {
+                      const isNumberField = [DataType.INTEGER, DataType.DOUBLE, DataType.LONG].includes(column.type);
+                      if (isNumberField) {
+                        const allowedKeys = [
+                          "Backspace", "Tab", "ArrowLeft", "ArrowRight", "Delete", "Enter",
+                          "Home", "End", "-", ".", // Allow minus and dot for numbers
+                        ];
+                        const numberKeys = /^[0-9]$/;
+
+                        if (
+                          !numberKeys.test(e.key) &&
+                          !allowedKeys.includes(e.key)
+                        ) {
+                          e.preventDefault();
+                        }
+                      }
+                    }}
                     sx={{
                       "& .MuiInputBase-root": {
                         fontSize: "0.875rem",
@@ -387,6 +429,8 @@ export default function FilterByData({
                 </Box>
               </>
             )}
+
+
           </React.Fragment>
         );
       })}

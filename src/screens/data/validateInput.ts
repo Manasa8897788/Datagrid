@@ -19,13 +19,12 @@ export const validateInput: Partial<GridMaster> = {
   gridPagination: {
     reqd: true,
     pageCount: 10,
-    recordPerPage: [5, 10, 15, 20],
+    recordPerPage: [10,20,50,100],
     dynamicLoad: false,
   },
   gridColumns: [
     {
       id: 2,
-      gridId: 1,
       code: "firstName",
       title: "First Name",
       sortable: true,

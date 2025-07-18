@@ -2,7 +2,6 @@ import { DataType } from "./dataType";
 
 export interface GridColumns {
   id: number;
-  gridId: number;
   code: string;
   title: string;
   sortable: boolean;
