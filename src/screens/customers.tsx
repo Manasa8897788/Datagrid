@@ -10,7 +10,7 @@ import { exportToExcel } from "./excelExport";
 import { exportToPDF } from "./exportPdf";
 import { PageState } from "./models/pageState";
 
-interface CustomersProps {}
+interface CustomersProps { }
 
 const Customers: React.FC<CustomersProps> = () => {
   const [customData, setCustomData] = useState<Customer[]>([]);
@@ -65,9 +65,45 @@ const Customers: React.FC<CustomersProps> = () => {
     console.log("handleSearch", value);
     getFilterdData(value);
   };
-  const handleSort = async (value: any) => {
-    console.log("handleSort:", value);
-    getFilterdData(value);
+  const handleSort = (value: { column: keyof Customer; direction: "asc" | "desc" }) => {
+    console.log("Sort Triggered:", value);
+
+    const { column, direction } = value;
+
+    if (!column) {
+      console.warn("No column provided for sorting");
+      return;
+    }
+
+    const sortedData = [...customData].sort((a, b) => {
+      const aValue = a[column];
+      const bValue = b[column];
+
+      if (aValue === undefined || bValue === undefined) return 0;
+
+      if (typeof aValue === "string") {
+        return direction === "asc"
+          ? aValue.localeCompare(bValue as string)
+          : (bValue as string).localeCompare(aValue);
+      }
+
+      if (typeof aValue === "number") {
+        return direction === "asc"
+          ? (aValue as number) - (bValue as number)
+          : (bValue as number) - (aValue as number);
+      }
+
+      return 0;
+    });
+
+    console.log("Sorted Data:", sortedData);
+    setCustomData(sortedData);
+
+    setCustomerGrid((prev) => ({
+      ...prev,
+      sortBy: column,
+      sortDirection: direction,
+    }));
   };
 
   const handleColumnSearch = async (value: {
@@ -118,41 +154,41 @@ const Customers: React.FC<CustomersProps> = () => {
     const currentPage = pageNumber < 1 ? 1 : pageNumber;
     const offset = currentPage - 1;
 
-    // if (isFilter) {
-    //   console.log("filteredData", filteredData);
-    //   getFilterdData({
-    //     ...filteredData,
-    //     pageNumber: offset,
-    //   });
-    //   console.log("filter");
-    // } else {
-    //   setCustomerGrid((prev) => ({
-    //     ...prev,
-    //     pageState: PageState.LOADING,
-    //   }));
-    //   try {
-    //     const response = await dataService.getCustomersPaginated(
-    //       offset,
-    //       pageSize
-    //     );
-    //     console.log("Paginated response:", response);
-    //     setCustomData(response?.content?.records || []);
-    //     setCustomerGrid((prev) => ({
-    //       ...prev,
-    //       currentPage: currentPage,
-    //       totalPages: response?.content?.totalPages || 1,
-    //       pageState: PageState.SUCCESS,
-    //     }));
-    //   } catch (error) {
-    //     setCustomerGrid((prev) => ({
-    //       ...prev,
-    //       pageState: PageState.ERROR,
-    //     }));
-    //     setCustomData([]);
-    //     console.error("Error fetching paginated customers:", error);
-    //   }
-    //   console.log("paginated");
-    // }
+    if (isFilter) {
+      console.log("filteredData", filteredData);
+      getFilterdData({
+        ...filteredData,
+        pageNumber: offset,
+      });
+      console.log("filter");
+    } else {
+      setCustomerGrid((prev) => ({
+        ...prev,
+        pageState: PageState.LOADING,
+      }));
+      try {
+        const response = await dataService.getCustomersPaginated(
+          offset,
+          pageSize
+        );
+        console.log("Paginated response:", response);
+        setCustomData(response?.content?.records || []);
+        setCustomerGrid((prev) => ({
+          ...prev,
+          currentPage: currentPage,
+          totalPages: response?.content?.totalPages || 1,
+          pageState: PageState.SUCCESS,
+        }));
+      } catch (error) {
+        setCustomerGrid((prev) => ({
+          ...prev,
+          pageState: PageState.ERROR,
+        }));
+        setCustomData([]);
+        console.error("Error fetching paginated customers:", error);
+      }
+      console.log("paginated");
+    }
   };
 
   const handleFilter = (value: any) => {
@@ -160,13 +196,13 @@ const Customers: React.FC<CustomersProps> = () => {
     // getFilterdData(value);
   };
   const handleClearAll = async () => {
-    // fetchData();
+    fetchData();
   };
 
-  const handleSelect = () => {};
-  const handleClearSort = () => {};
-  const handleClearFilter = () => {};
-  const handleColumnSort = () => {};
+  const handleSelect = () => { };
+  const handleClearSort = () => { };
+  const handleClearFilter = () => { };
+  const handleColumnSort = () => { };
 
   const handleDownload = async (format: "xlsx" | "pdf") => {
     try {
@@ -220,9 +256,9 @@ const Customers: React.FC<CustomersProps> = () => {
 
   const fetchData = async () => {
     try {
-      const response = await dataService.getCustomersPaginated(0, 5);
-      console.log("PPPPaginated response:", response);
-      console.log("PPData", response?.content?.records);
+      const response = await dataService.getCustomersPaginated(0, 10);
+      console.log("Paginated response:", response);
+      console.log("Data", response?.content?.records);
       setCustomData(response?.content?.records || []);
       //setTotalRecords(response.totalCount || 0);
       setCustomerGrid((prev) => ({

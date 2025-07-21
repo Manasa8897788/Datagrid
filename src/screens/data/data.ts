@@ -87,7 +87,7 @@ export const customerGrid: GridMaster = {
     reqd: true,
     pageCount: 10,
     recordPerPage: [10, 20, 50, 100],
-    dynamicLoad: false,
+    dynamicLoad: true,
   },
   gridColumns: [
     {

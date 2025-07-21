@@ -6,6 +6,7 @@ import { GenericFilterRequest } from "../screens/models/genericFilterRequest";
 const API_BASE_URL = "http://13.203.127.30:9999/aurave-api";
 
 const dataService = {
+  
   async getCustomerMasterList() {
     try {
       const response = await axios.get(`${API_BASE_URL}/customer/master/get`);
