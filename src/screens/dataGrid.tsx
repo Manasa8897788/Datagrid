@@ -172,17 +172,8 @@ function filterCustomers(customers: any[], filterConfig: any) {
     });
   }
 
-  // 5. Pagination
-  const startIndex =
-    (filterConfig.pageNumber || 0) * (filterConfig.pageSize || 10);
-  const endIndex = startIndex + (filterConfig.pageSize || 10);
-  const paginatedData = filteredData.slice(startIndex, endIndex);
-
   return {
-    data: paginatedData,
-    // data: paginatedData,
-    // totalCount: filteredData.length,
-    // totalPages: Math.ceil(filteredData.length / (filterConfig.pageSize || 10)),
+    data: filteredData,
   };
 }
 
@@ -209,6 +200,7 @@ const DataTable: React.FC<DataTableProps> = ({
     totalPages: serverPages,
     currentPage,
     serverSidePagination,
+    serverSide,
   } = gridMaster || children;
   const [selectedEnums, setSelectedEnums] = useState<FilterCriteria[] | any>(
     []
@@ -327,73 +319,134 @@ const DataTable: React.FC<DataTableProps> = ({
     .map((each) => each.code);
 
   useEffect(() => {
-    setServiceData({
-      searchKey: searchText ?? null,
-      searchableColumns: searchText ? searchableColumns : null,
-
-      filters:
-        selectedEnums.length > 0
-          ? selectedEnums.map((each: any) => ({
-              field: each.fieldCode,
-              values: each.values,
-              type: each.type,
-            }))
-          : null,
-
-      // [
-      //   {
-      //     field: "gender",
-      //     values: ["MALE"],
-      //     type: "STRING",
-      //   },
-      //   // {
-      //   //   "field": "currency",
-      //   //   "values": ["INR", null],
-      //   //   "type": "STRING"
-      //   // }
-      // ],
-
-      ranges: selectedRanges.length > 0 ? selectedRanges : null,
-
-      // [
-      //   {
-      //     "field": "dob",
-      //     "from": "1990-01-01",
-      //     "to": "2005-12-31",
-      //     "type": "DATE"
-      //   },
-      //   {
-      //     field: "registeredOn",
-      //     from: "2025-01-01T00:00:00",
-      //     to: "2025-12-31T00:00:00",
-      //     type: "DATE_AND_TIME",
-      //   },
-      // ],
-
-      sortColumns: selectedColumns.length > 0 ? selectedColumns : null, // ["registeredOn"],
-      sortDirection:
-        selectedColumns.length > 0 ? sortType.toLocaleUpperCase() : null, // "DESC",
-
-      pageNumber: page - 1,
-      pageSize: rowsPerPage,
-    });
-
-    if (isOnSearchClicked && callBacks.onSearch) {
-      setIsOnSearchClicked(false);
-      callBacks.onSearch({
+    if (serverSide) {
+      setServiceData({
         searchKey: searchText ?? null,
         searchableColumns: searchText ? searchableColumns : null,
+        filters:
+          selectedEnums.length > 0
+            ? selectedEnums.map((each: any) => ({
+                field: each.fieldCode,
+                values: each.values,
+                type: each.type,
+              }))
+            : null,
+
+        // [
+        //   {
+        //     field: "gender",
+        //     values: ["MALE"],
+        //     type: "STRING",
+        //   },
+        //   // {
+        //   //   "field": "currency",
+        //   //   "values": ["INR", null],
+        //   //   "type": "STRING"
+        //   // }
+        // ],
+
+        ranges: selectedRanges.length > 0 ? selectedRanges : null,
+
+        // [
+        //   {
+        //     "field": "dob",
+        //     "from": "1990-01-01",
+        //     "to": "2005-12-31",
+        //     "type": "DATE"
+        //   },
+        //   {
+        //     field: "registeredOn",
+        //     from: "2025-01-01T00:00:00",
+        //     to: "2025-12-31T00:00:00",
+        //     type: "DATE_AND_TIME",
+        //   },
+        // ],
+
+        sortColumns: selectedColumns.length > 0 ? selectedColumns : null, // ["registeredOn"],
+        sortDirection:
+          selectedColumns.length > 0 ? sortType.toLocaleUpperCase() : null, // "DESC",
 
         pageNumber: page - 1,
         pageSize: rowsPerPage,
       });
+
+      if (isOnSearchClicked && callBacks.onSearch) {
+        setIsOnSearchClicked(false);
+        callBacks.onSearch({
+          searchKey: searchText ?? null,
+          searchableColumns: searchText ? searchableColumns : null,
+
+          pageNumber: page - 1,
+          pageSize: rowsPerPage,
+        });
+        setServiceData({
+          searchKey: searchText ?? null,
+          searchableColumns: searchText ? searchableColumns : null,
+          pageNumber: page - 1,
+          pageSize: rowsPerPage,
+        });
+      }
+    } else {
       setServiceData({
         searchKey: searchText ?? null,
         searchableColumns: searchText ? searchableColumns : null,
 
-        pageNumber: page - 1,
-        pageSize: rowsPerPage,
+        filters:
+          selectedEnums.length > 0
+            ? selectedEnums.map((each: any) => ({
+                field: each.fieldCode,
+                values: each.values,
+                type: each.type,
+              }))
+            : null,
+
+        // [
+        //   {
+        //     field: "gender",
+        //     values: ["MALE"],
+        //     type: "STRING",
+        //   },
+        //   // {
+        //   //   "field": "currency",
+        //   //   "values": ["INR", null],
+        //   //   "type": "STRING"
+        //   // }
+        // ],
+
+        ranges: selectedRanges.length > 0 ? selectedRanges : null,
+
+        // [
+        //   {
+        //     "field": "dob",
+        //     "from": "1990-01-01",
+        //     "to": "2005-12-31",
+        //     "type": "DATE"
+        //   },
+        //   {
+        //     field: "registeredOn",
+        //     from: "2025-01-01T00:00:00",
+        //     to: "2025-12-31T00:00:00",
+        //     type: "DATE_AND_TIME",
+        //   },
+        // ],
+
+        sortColumns: selectedColumns.length > 0 ? selectedColumns : null, // ["registeredOn"],
+        sortDirection:
+          selectedColumns.length > 0 ? sortType.toLocaleUpperCase() : null, // "DESC",
       });
+      if (isOnSearchClicked && callBacks.onSearch) {
+        setIsOnSearchClicked(false);
+        callBacks.onSearch({
+          searchKey: searchText ?? null,
+          searchableColumns: searchText ? searchableColumns : null,
+          pageNumber: page - 1,
+          pageSize: rowsPerPage,
+        });
+        setServiceData({
+          searchKey: searchText ?? null,
+          searchableColumns: searchText ? searchableColumns : null,
+        });
+      }
     }
   }, [
     searchText,
@@ -407,7 +460,7 @@ const DataTable: React.FC<DataTableProps> = ({
   ]);
 
   useEffect(() => {
-    if (!serverSidePagination && !gridMasterObj.serverSide) {
+    if (!serverSidePagination && !serverSide) {
       const filteredDataOffline = filterCustomers(data, serviceData);
       setFilteredData(filteredDataOffline.data);
     }
@@ -425,7 +478,7 @@ const DataTable: React.FC<DataTableProps> = ({
 
     const lowerText = searchText.trim().toLowerCase();
 
-    if (gridMasterObj.serverSide) {
+    if (serverSide) {
       setFilteredData(data);
     } else {
       if (!lowerText) {
@@ -444,6 +497,7 @@ const DataTable: React.FC<DataTableProps> = ({
 
     setPage(1);
   }, [searchText, data]);
+
   function getSortMessage(columns: string[], direction: string | null) {
     if (!columns?.length || !direction) return "";
     return `Sorted by ${columns.join(", ")} (${direction.toUpperCase()})`;
@@ -507,6 +561,7 @@ const DataTable: React.FC<DataTableProps> = ({
     }
     // console.log("delete clicked");
   };
+
   const handlePaginationChange = (
     event: React.ChangeEvent<unknown>,
     newPage: number
@@ -604,6 +659,7 @@ const DataTable: React.FC<DataTableProps> = ({
 
     setSelectedRows(newSelected);
   };
+
   const handleChangeView = (
     event: React.MouseEvent<HTMLElement>,
     nextView: string
@@ -906,8 +962,10 @@ const DataTable: React.FC<DataTableProps> = ({
               setSearchText("");
               setSelectedColumns([]);
               setSortType("asc");
-
               callBacks.onClearAll?.({});
+              if (!serverSide) {
+                setFilteredData(data);
+              }
             }}
             sx={{
               height: 40,
