@@ -26,277 +26,94 @@ The DataTable component expects data (an array of your records) and a gridMaster
 
 ```bash
 import React, { useEffect, useState } from "react";
-import { Box, Typography } from "@mui/material"; 
+import { Box } from "@mui/material";
 import DataTable from "chs-real-data-grid";
-import { Customer } from "./models/customer"; 
-import { GridMaster } from "./models/gridMaster";
-import { dumpData, validateInput } from "./data/validateInput"; 
-import { PageState } from "./models/pageState"; 
-import { exportToExcel } from "./excelExport"; 
-import { exportToPDF } from "./exportPdf";
-import React, { useEffect, useState } from "react";
-import { Box, Typography } from "@mui/material"; // Typography is included in the source but not used in the final return
-import DataTable from "chs-real-data-grid"; // Assuming 'DataTable' is the export from your package 
 import { Customer } from "./models/customer";
 import { GridMaster } from "./models/gridMaster";
-import { dumpData, validateInput } from "./data/validateInput"; // Example data and input validation 
-import { customerGrid as customerGridDefault } from "./screens/data/data"; // Your default grid config 
-import { exportToExcel } from "./excelExport"; // Export helpers 
-import { exportToPDF } from "./exportPdf"; // Export helpers 
-import { PageState } from "./models/pageState"; // PageState enum 
+import { dumpData, validateInput } from "./data/validateInput";
+import { customerGrid as customerGridDefault } from "./screens/data/data";
+import { PageState } from "./models/pageState";
 
 const Customers: React.FC = () => {
-    const [customData, setCustomData] = useState<Customer[]>(dumpData); // Initial data [15, 16]
+  const [customData, setCustomData] = useState<Customer[]>(dumpData);
 
-    Callback implementations
-    const getFilterdData = async (value: any) => {
-        setCustomerGrid((prev) => ({
-            ...prev,
-            pageState: PageState.LOADING,
-        }));
-        // Example server-side call (commented out in source) 
-        // try {
-        //   const response: any = await dataService.filterCustomers(value);
-        //   setCustomData(response?.content?.records || []);
-        //   setCustomerGrid((prev) => ({
-        //     ...prev,
-        //     currentPage: value.pageNumber + 1,
-        //     currentPageSize: value.pageSize || customerGrid.currentPageSize,
-        //     totalPages: response?.content?.totalPages || 1,
-        //     pageState: PageState.SUCCESS,
-        //   }));
-        // } catch (error) {
-        //   setCustomData([]);
-        //   setCustomerGrid((prev) => ({ ...prev, pageState: PageState.ERROR }));
-        //   console.error("Error filterCustomers:", error);
-        // }
-    };
+  // GridMaster state
+  const [customerGrid, setCustomerGrid] = useState<GridMaster>({
+    ...validateInput,
+    ...customerGridDefault,
+    callBacks: {
+      onSelect: (row) => console.log("Selected:", row),
+      onDelete: (row) => console.log("Deleted:", row),
+      onRowView: (row) => console.log("View:", row),
+      onRowEdit: (row) => console.log("Edit:", row),
+      onRowDelete: (row) => console.log("Delete Cell:", row),
+      onSearch: (query) => console.log("Search:", query),
+      onSort: (sort) => handleSort(sort),
+      onColumnSearch: (col) => console.log("Column Search:", col),
+      onFilter: (filter) => console.log("Filter:", filter),
+      onClearSort: () => console.log("Clear Sort"),
+      onClearFilter: () => console.log("Clear Filter"),
+      onClearAll: () => console.log("Clear All"),
+      onColumnSort: (col) => console.log("Column Sort:", col),
+      onDownload: (format) => console.log("Download:", format),
+      onPagination: (page) => console.log("Pagination:", page),
+    },
+  });
 
-    const handleSelect = () => {
-        console.log("handleSelect"); 
-    };
+  // Sorting example
+  const handleSort = (value: { column: keyof Customer; direction: "asc" | "desc" }) => {
+    const { column, direction } = value;
+    if (!column) return;
 
-    const handleDelete = (val: any) => {
-        console.log("handle Delete", val); 
-    };
+    const sortedData = [...customData].sort((a, b) => {
+      const aVal = a[column];
+      const bVal = b[column];
 
-    const handleDeleteCell = (value: any) => {
-        console.log("handleDeleteCell", value); 
-    };
-
-    const handleView = (value: any) => {
-        console.log("handleView", value); 
-    };
-
-    const handleEdit = (value: any) => {
-        console.log("handleEdit", value); 
-    };
-
-    const handleSearch = (value: any) => {
-        console.log("handleSearch", value);
-        getFilterdData(value);
-    };
-
-    const handleSort = (value: { column: keyof Customer; direction: "asc" | "desc" }) => {
-        console.log("Sort Triggered:", value); // [18, 32]
-        const { column, direction } = value;
-        if (!column) {
-            console.warn("No column provided for sorting");
-            return;
-        }
-        const sortedData = [...customData].sort((a, b) => {
-            const aValue = a[column];
-            const bValue = b[column];
-            if (aValue === undefined || bValue === undefined) return 0;
-            if (typeof aValue === "string") {
-                return direction === "asc"
-                    ? aValue.localeCompare(bValue as string)
-                    : (bValue as string).localeCompare(aValue);
-            }
-            if (typeof aValue === "number") {
-                return direction === "asc"
-                    ? (aValue as number) - (bValue as number)
-                    : (bValue as number) - (aValue as number);
-            }
-            return 0;
-        });
-        console.log("Sorted Data:", sortedData);
-        setCustomData(sortedData);
-        setCustomerGrid((prev) => ({
-            ...prev,
-            sortBy: column,
-            sortDirection: direction,
-        }));
-    }; [18, 19, 32, 33]
-
-    const handleColumnSearch = async (value: { column: string; searchText: string }) => {
-        const { column, searchText } = value;
-        console.log("handleColumnSearch", value); 
-        setCustomerGrid((prev) => ({
-            ...prev,
-            pageState: PageState.LOADING,
-        }));
-        // Example server-side call (commented out in source)
-        // try {
-        //   const response = await dataService.fetchCustomersByColumn(column, searchText);
-        //   const records = response?.content;
-        //   setCustomData(records);
-        //   setCustomerGrid((prev) => ({
-        //     ...prev,
-        //     currentPage: 1,
-        //     totalPages: response?.content?.totalPages || 1,
-        //   }));
-        // } catch (error) {
-        //   setCustomData([]);
-        //   setCustomerGrid((prev) => ({ ...prev, pageState: PageState.ERROR }));
-        //   console.error("Error fetching customers by column search:", error);
-        // }
-    }; [19-21, 33]
-
-    const handlePagination = async (value: any) => {
-        const { page: pageNumber, rowsPerPage: pageSize, isFilter, filteredData } = value;
-        console.log("handle Pagination", value); 
-        const currentPage = pageNumber < 1 ? 1 : pageNumber;
-        const offset = currentPage - 1;
-        if (isFilter) {
-            console.log("filteredData", filteredData);
-            getFilterdData({
-                ...filteredData,
-                pageNumber: offset,
-            });
-            console.log("filter");
-        } else {
-            setCustomerGrid((prev) => ({
-                ...prev,
-                pageState: PageState.LOADING,
-            }));
-            // Example server-side call (commented out in source)
-            // try {
-            //   const response = await dataService.getCustomersPaginated(offset, pageSize);
-            //   setCustomData(response?.content?.records || []);
-            //   setCustomerGrid((prev) => ({
-            //     ...prev,
-            //     currentPage: currentPage,
-            //     totalPages: response?.content?.totalPages || 1,
-            //     pageState: PageState.SUCCESS,
-            //   }));
-            // } catch (error) {
-            //   setCustomerGrid((prev) => ({ ...prev, pageState: PageState.ERROR }));
-            //   setCustomData([]);
-            //   console.error("Error fetching paginated customers:", error);
-            // }
-            console.log("paginated");
-        }
-    }; [21-24, 34, 35]
-
-    const handleFilter = (value: any) => {
-        console.log("handleFilter", value);
-        // getFilterdData(value);
-    };
-
-    const handleClearAll = async () => {
-        console.log("handleClearAll"); 
-        // fetchData();
-    };
-
-    const handleClearSort = () => {
-        console.log("handleClearSort"); 
-    };
-
-    const handleClearFilter = () => {
-        console.log("handleClearFilter"); 
-    };
-
-    const handleColumnSort = () => {
-        console.log("handleColumnSort"); 
-    };
-
-    const handleDownload = async (format: "xlsx" | "pdf") => {
-        console.log("handleDownload", format); // [25, 35]
-        // Example server-side call and export logic (commented out in source) 
-        // try {
-        //   const response = await dataService.getCustomerMasterList();
-        //   const exportData = response?.content || [];
-        //   const exportableColumns = customerGrid.gridColumns
-        //     .filter((col) => col.displayable && col.code !== "ID")
-        //     .map((col) => ({ title: col.title, code: col.code }));
-        //   if (format === "xlsx") {
-        //     exportToExcel(exportData, exportableColumns, "Customer_Master_Export");
-        //   }
-        //   if (format === "pdf") {
-        //     exportToPDF(
-        //       exportData,
-        //       exportableColumns.map(({ code, title }) => ({ code, name: title })),
-        //       "Customer_Master_Export"
-        //     );
-        //   }
-        // } catch (error) {
-        //   console.error("Error during export:", error);
-        // }
-    };
-
-    // GridMaster state using default customerGrid configuration 
-    const [customerGrid, setCustomerGrid] = useState<GridMaster>({
-        ...validateInput, // Assuming validateInput provides some default grid config or overrides
-        ...customerGridDefault,
-        callBacks: {
-            onSelect: handleSelect,
-            onDelete: handleDelete,
-            onSearch: handleSearch,
-            onRowView: handleView,
-            onRowEdit: handleEdit,
-            onRowDelete: handleDeleteCell,
-            onSort: handleSort,
-            onClearSort: handleClearSort,
-            onFilter: handleFilter,
-            onClearFilter: handleClearFilter,
-            onColumnSort: handleColumnSort,
-            onDownload: handleDownload,
-            onPagination: handlePagination,
-            onClearAll: handleClearAll,
-            onColumnSearch: handleColumnSearch,
-        },
+      if (typeof aVal === "string") {
+        return direction === "asc"
+          ? aVal.localeCompare(bVal as string)
+          : (bVal as string).localeCompare(aVal);
+      }
+      if (typeof aVal === "number") {
+        return direction === "asc"
+          ? (aVal as number) - (bVal as number)
+          : (bVal as number) - (aVal as number);
+      }
+      return 0;
     });
 
-    // Initial data fetching
-    const fetchData = async () => {
-        // Example server-side call (commented out in source) 
-        // try {
-        //   const response = await dataService.getCustomersPaginated(0, 10);
-        //   setCustomData(response?.content?.records || []);
-        //   setCustomerGrid((prev) => ({
-        //     ...prev,
-        //     currentPage: 1,
-        //   }));
-        // } catch (error) {
-        //   console.error("Error fetching paginated customers:", error);
-        // }
-    };
+    setCustomData(sortedData);
+    setCustomerGrid((prev) => ({
+      ...prev,
+      sortBy: column,
+      sortDirection: direction,
+    }));
+  };
 
-    useEffect(() => {
-        fetchData();
-    }, []); 
+  // Initial data fetch (example)
+  useEffect(() => {
+    // fetchData from server if needed
+    setCustomData(dumpData);
+  }, []);
 
-    return (
-        <Box
-            sx={{
-                width: "80%",
-                height: "auto", // Can be "auto" or a fixed height [39]
-                p: "2.5rem",
-                borderRadius: "1.5rem",
-                background: "#fff",
-            }}
-        >
-            {/* The DataTable component would be rendered here, passing customData and customerGrid */}
-            {/* The source only shows {customerGrid} directly, implying the actual DataTable component is omitted for brevity or passed as children implicitly */}
-            {/* For a complete example, it should look like: */}
-            {/* <DataTable data={customData} gridMaster={customerGrid} /> */}
-            {customerGrid} {/* This part of the source might be a placeholder for brevity [14, 40] */}
-        </Box>
-    );
+  return (
+    <Box
+      sx={{
+        width: "80%",
+        p: "2rem",
+        borderRadius: "1.5rem",
+        background: "#fff",
+      }}
+    >
+      <DataTable data={customData} gridMaster={customerGrid} />
+    </Box>
+  );
 };
 
 export default Customers;
+
+
+    
 ```
 ### The customerGrid default object, used in the example above, is configured as follows:
 
