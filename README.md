@@ -40,7 +40,6 @@ const Customers: React.FC = () => {
   // GridMaster state
   const [customerGrid, setCustomerGrid] = useState<GridMaster>({
     ...validateInput,
-    ...customerGridDefault,
     callBacks: {
       onSelect: (row) => console.log("Selected:", row),
       onDelete: (row) => console.log("Deleted:", row),
