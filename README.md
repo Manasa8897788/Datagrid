@@ -393,9 +393,9 @@ export const customerGrid: GridMaster = {
 
 ```
 ### Props
-# data: An array of row objects matching the consumer's model (e.g., Customer[]).
-# gridMaster: The grid configuration object, containing columns, paging, sorting, filter state, UI options, and callback handlers.
-# children: Optional ReactNode for advanced composition; can pass grid state for debugging or developer tools.
+-  **data**: An array of row objects matching the consumer's model (e.g., Customer[]).
+-  **gridMaster**: The grid configuration object, containing columns, paging, sorting, filter state, UI options, and callback handlers.
+-  **children**: Optional ReactNode for advanced composition; can pass grid state for debugging or developer tools.
 
 #### Callbacks
 These functions are triggered by user interactions within the grid and allow you to implement custom logic for data manipulation and state updates. The customerGrid default object demonstrates how to assign these.
