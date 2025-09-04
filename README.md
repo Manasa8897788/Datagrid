@@ -300,7 +300,7 @@ export default Customers;
 ```
 ### The customerGrid default object, used in the example above, is configured as follows:
 
-
+```bash
 
 import { DataType } from "../models/dataType";
 import { GridMaster } from "../models/gridMaster";
@@ -321,7 +321,7 @@ const handleColumnSort = (key: any) => { console.log("Column sort by key:", key)
 const handleDownload = (key: any) => { console.log("Download for key:", key); };
 const handlePagination = async (value: any) => { /* Detailed async logic here */ }; // [31, 41]
 
-```bash
+
 
 export const customerGrid: GridMaster = {
     id: 1,
