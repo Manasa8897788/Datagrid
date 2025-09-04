@@ -9,6 +9,16 @@ A customizable React data grid built on Material UI, designed for real-world app
 *   TypeScript types for data and grid configuration.
 *   Supports server-side pagination and actions.
 
+
+## Minimal usage
+
+```bash
+import DataTable from "./DataTable";
+
+<DataTable data={myRows} gridMaster={myGridMaster} />
+
+```
+
 #### Installation
 Install peer dependencies and the grid package:
 **Note**: Material UI packages are peer dependencies. Ensure compatible versions are installed.
