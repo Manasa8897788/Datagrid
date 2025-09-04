@@ -13,7 +13,7 @@ A customizable React data grid built on Material UI, designed for real-world app
 ## Minimal usage
 
 ```bash
-import DataTable from "./DataTable";
+import DataTable from "chs-real-data-grid";
 
 <DataTable data={myRows} gridMaster={myGridMaster} />
 
