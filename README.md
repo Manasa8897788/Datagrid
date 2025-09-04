@@ -60,29 +60,6 @@ const Customers: React.FC = () => {
     },
   });
 
-  // Sorting example
-  const handleSort = (value: { column: keyof Customer; direction: "asc" | "desc" }) => {
-    const { column, direction } = value;
-    if (!column) return;
-
-    const sortedData = [...customData].sort((a, b) => {
-      const aVal = a[column];
-      const bVal = b[column];
-
-      if (typeof aVal === "string") {
-        return direction === "asc"
-          ? aVal.localeCompare(bVal as string)
-          : (bVal as string).localeCompare(aVal);
-      }
-      if (typeof aVal === "number") {
-        return direction === "asc"
-          ? (aVal as number) - (bVal as number)
-          : (bVal as number) - (aVal as number);
-      }
-      return 0;
-    });
-
-    setCustomData(sortedData);
     setCustomerGrid((prev) => ({
       ...prev,
       sortBy: column,
@@ -97,16 +74,9 @@ const Customers: React.FC = () => {
   }, []);
 
   return (
-    <Box
-      sx={{
-        width: "80%",
-        p: "2rem",
-        borderRadius: "1.5rem",
-        background: "#fff",
-      }}
-    >
+    <div>
       <DataTable data={customData} gridMaster={customerGrid} />
-    </Box>
+    </div>
   );
 };
 
